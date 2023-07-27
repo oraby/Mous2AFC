@@ -13,26 +13,42 @@ NextTrial.PreStimCntrReward = GUI.PreStimuDelayCntrReward;
 NextTrial.BlockNum = NextTrialBlockNum;
 
 tic;
+% Secondary Experiment DV can be none or another value.
+if NextTrial.SecExpIsUsed %rand() < GUI.SecExpUseProb
+    [NextTrial, SecStimulusOmega] = GenSecExp(NextTrial, SecExpType,...
+        GUI.SecExpStimIntensity, NextTrial.SecExpDirIsInversed, GUI.OmegaTable);
+    if NextTrial.SecExpIsUsedAlone %rand() < GUI.SecExpProbUseAloneProb
+        % DV will be set to NaN in the next step. Stimulus Omega will be
+        % set below as appropriate
+        PrimaryExpType = ExperimentType.NoStimulus;
+        % Mark that in next trial that we were not using the original
+        % MinSampling.
+        if GUI.SecExpAloneMinSample
+            GUI.PrimaryOriginalMinSample = GUI.MinSample;
+            GUI.MinSample = GUI.SecExpAloneMinSample;
+        else
+            % Mark that we didn't change the original minimum sampling
+            GUI.PrimaryOriginalMinSample = NaN;
+        end
+    end
+else
+    NextTrial.SecDV = NaN;
+    % Mark that we didn't change the original minimum sampling
+    GUI.PrimaryOriginalMinSample = NaN;
+end
+if PrimaryExpType == ExperimentType.NoStimulus
+    NextTrial.StimulusOmega = round(NextTrial.StimulusOmega);
+end
 [NextTrial, DV] = CalcTrialDV(NextTrial, PrimaryExpType,...
                               NextTrial.StimulusOmega);
-NextTrial.DV = DV;
 % cross-modality difficulty for plotting
 %  0 <= (left - right) / (left + right) <= 1
 NextTrial.DV = DV;
-
-% Secondary Experiment DV can be none or another value.
-if rand(1,1) < GUI.SecExpUseProb
-    NextTrial = GenSecExp(NextTrial, SecExpType,...
-                          GUI.SecExpStimIntensity, GUI.SecExpStimDir,...
-                          GUI.OmegaTable);
-else
-    NextTrial.SecDV = NaN;
-end
 CurTimer.customSecDV = toc; tic;
 
 % Set current stimulus for next trial
 GUI.CurrentStim = StimDirStr(PrimaryExpType, NextTrial.DV, SecExpType,...
-                             NextTrial.SecDV);
+                             NextTrial.SecDV, NextTrial.LeftRewarded);
 %determine if optogentics trial
 OptoEnabled = rand(1,1) <  GUI.OptoProb;
 if NextTrialIdx < GUI.StartEasyTrials

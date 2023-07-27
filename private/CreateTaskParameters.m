@@ -8,14 +8,15 @@ TaskParameters.GUI.SecExperimentType = ExperimentType.SoundIntensity;
 TaskParameters.GUIMeta.SecExperimentType.Style = 'popupmenu';
 TaskParameters.GUIMeta.SecExperimentType.String = ExperimentType.String;
 TaskParameters.GUI.SecExpUseProb = 0;
-TaskParameters.GUI.SecExpStimDir = SecExpStimDir.SameAsPrimay;
-TaskParameters.GUIMeta.SecExpStimDir.Style = 'popupmenu';
+TaskParameters.GUI.SecExpProbUseAloneProb = 1;
+TaskParameters.GUI.SecExpInverseStimDirRatio = 0;
 TaskParameters.GUIMeta.SecExpStimDir.String = SecExpStimDir.String;
 TaskParameters.GUI.SecExpStimIntensity = SecExpStimIntensity.HundredPercent;
 TaskParameters.GUIMeta.SecExpStimIntensity.Style = 'popupmenu';
 TaskParameters.GUIMeta.SecExpStimIntensity.String = SecExpStimIntensity.String;
 TaskParameters.GUIPanels.Experiment = {'ExperimentType','SecExperimentType',...
-    'SecExpUseProb','SecExpStimDir','SecExpStimIntensity'};
+    'SecExpUseProb','SecExpProbUseAloneProb','SecExpInverseStimDirRatio',...
+    'SecExpStimIntensity'};
 %% General
 TaskParameters.GUI.ITI = 0; % (s)
 TaskParameters.GUI.RewardAmount = 5;
@@ -139,6 +140,7 @@ TaskParameters.GUIMeta.MinSample.Style = 'text';
 TaskParameters.GUI.PercentForcedLEDTrial = 0;
 TaskParameters.GUI.PortLEDtoCueReward = false;
 TaskParameters.GUIMeta.PortLEDtoCueReward.Style = 'checkbox';
+TaskParameters.GUI.SecExpAloneMinSample = 0;
 % This is a hidden field
 TaskParameters.GUI.PrimaryOriginalMinSample = NaN;
 % Auditory Specific
@@ -162,11 +164,11 @@ TaskParameters.GUIMeta.BeepAfterMinSampling.Style = 'checkbox';
 TaskParameters.GUIPanels.PoissonClicks = {'SumRates'};
 TaskParameters.GUIPanels.LightIntensity = {'LeftPokeAttenPrcnt','CenterPokeAttenPrcnt','RightPokeAttenPrcnt','StimAfterPokeOut', 'BeepAfterMinSampling'};
 TaskParameters.GUIPanels.SoundIntensity = {'UsePCSpeakers','AudStimType','LeftSpeakerAttenPrcnt','RightSpeakerAttenPrcnt'};
-TaskParameters.GUIPanels.StimulusSelection = {'OmegaTable','TableNote','BetaDistAlphaNBeta',...
+TaskParameters.GUIPanels.StimulusSelection = {'OmegaTable','BetaDistAlphaNBeta',...
     'StimulusSelectionCriteria','LeftBias','LeftBiasVal','CorrectBias'};
 TaskParameters.GUIPanels.Sampling = {'RewardAfterMinSampling','CenterPortRewAmount','MinSampleMin',...
                                      'MinSampleMax','MinSampleType','MinSampleIncr','MinSampleDecr','MinSampleNumInterval','MinSampleRandProb',...
-                                     'StimulusTime','PortLEDtoCueReward','PercentForcedLEDTrial'};
+                                     'StimulusTime','PortLEDtoCueReward','PercentForcedLEDTrial','SecExpAloneMinSample'};
 %% Summary Tab
 TaskParameters.GUI.MouseState = MouseState.FreelyMoving;
 TaskParameters.GUIMeta.MouseState.Style = 'popupmenu';

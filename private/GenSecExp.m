@@ -1,5 +1,5 @@
-function Trial = GenSecExp(Trial, SecExpType, SecExpStimIntensity_,...
-                           SecExpStimDir_, OmegaTable)
+function [Trial, SecStimulusOmega] = GenSecExp(Trial, SecExpType,...
+                     SecExpStimIntensity_, SecExpDirIsInversed, OmegaTable)
 switch SecExpStimIntensity_
     case SecExpStimIntensity.SameAsOriginalIntensity
         SecStimulusOmega = Trial.StimulusOmega;
@@ -15,14 +15,10 @@ switch SecExpStimIntensity_
     otherwise
         assert(false, 'Unexpected SecExpStimIntensity value');
 end
-switch SecExpStimDir_
-    case SecExpStimDir.Random
-        % Should we also do a controlled random here?
-        SecLeftRewarded = rand(1, 1) > 0.5;
-    case SecExpStimDir.SameAsPrimay
-        SecLeftRewarded = Trial.LeftRewarded;
-    otherwise
-        assert(false, 'Unexpected SecExpStimDir value');
+if SecExpDirIsInversed
+    SecLeftRewarded = ~Trial.LeftRewarded;
+else
+    SecLeftRewarded = Trial.LeftRewarded;
 end
 if (SecLeftRewarded && SecStimulusOmega < 0.5) ||...
    (~SecLeftRewarded && SecStimulusOmega >= 0.5)

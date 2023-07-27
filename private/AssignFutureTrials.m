@@ -1,12 +1,24 @@
 function [Trials, startFrom] = AssignFutureTrials(Trials, GUI, startFrom,...
-                                                  NumTrialsToGenerate, LeftBias)
-
-% make future trials
+                                                  NumTrialsToGenerate, LeftBias,...
+                                                  SecExpType)
+function [OneZeroArr] = ControlledRandom(prob)
+    NumPositiveTrials = NumTrialsToGenerate*prob;
+    % If it's not a whole number, then we will generate one extra entry and
+    % will shuffle the array, and wil drop the last extra entry (if any)
+    OneZeroArr = [ones(1, ceil(NumPositiveTrials))...
+                  zeros(1, ceil(NumTrialsToGenerate-NumPositiveTrials))];
+    OneZeroArr = OneZeroArr(randperm(numel(OneZeroArr)));
+    OneZeroArr = OneZeroArr(1:NumTrialsToGenerate);
+end
+%% Generate guaranteed probability distribution over the few trials we have
+IsLeftRewarded = ControlledRandom(1-LeftBias);
+SecExpIsUsed = ControlledRandom(GUI.SecExpUseProb);
+SecExpIsUsedAlone = ControlledRandom(GUI.SecExpProbUseAloneProb);
+SecExpIsUsedAlone(SecExpIsUsed == 0) = nan;
+SecExpDirIsInversed = ControlledRandom(GUI.SecExpInverseStimDirRatio);
+SecExpDirIsInversed(SecExpIsUsed == 0) = nan;
+%% Make future trials
 lastidx = startFrom;
-% Generate guaranteed equal possibility of >0.5 and <0.5
-IsLeftRewarded = [zeros(1, round(NumTrialsToGenerate*LeftBias)) ones(1, round(NumTrialsToGenerate*(1-LeftBias)))];
-% Shuffle array and convert it
-IsLeftRewarded = IsLeftRewarded(randperm(numel(IsLeftRewarded))) > LeftBias;
 for a = 0:NumTrialsToGenerate-1
     % If it's a fifty-fifty trial, then place stimulus in the middle
     if rand(1,1) < GUI.Percent50Fifty && (lastidx+a) > GUI.StartEasyTrials % 50Fifty trials
@@ -44,6 +56,9 @@ for a = 0:NumTrialsToGenerate-1
     else
         Trial.LeftRewarded = rand < 0.5;
     end
+    Trial.SecExpIsUsed = SecExpIsUsed(a+1);
+    Trial.SecExpIsUsedAlone = SecExpIsUsedAlone(a+1);
+    Trial.SecExpDirIsInversed = SecExpDirIsInversed(a+1);
     Trials(lastidx+a) = Trial;
 end%for a=1:5
 startFrom = startFrom + NumTrialsToGenerate;
