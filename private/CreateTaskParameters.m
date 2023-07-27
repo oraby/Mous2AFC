@@ -146,15 +146,21 @@ TaskParameters.GUI.SumRates = 100;
 TaskParameters.GUI.LeftPokeAttenPrcnt = 73;
 TaskParameters.GUI.CenterPokeAttenPrcnt = 95;
 TaskParameters.GUI.RightPokeAttenPrcnt = 73;
+TaskParameters.GUI.UsePCSpeakers = 1;
+TaskParameters.GUIMeta.UsePCSpeakers.Style = 'checkbox';
+TaskParameters.GUI.AudStimType = 1;
+TaskParameters.GUIMeta.AudStimType.Style = 'popupmenu';
+TaskParameters.GUIMeta.AudStimType.String = AudStimType.String;
 TaskParameters.GUI.LeftSpeakerAttenPrcnt = 80;
 TaskParameters.GUI.RightSpeakerAttenPrcnt = 80;
+TaskParameters.GUI.StimAfterPokeOut = StimAfterPokeOut.NotUsed;
 TaskParameters.GUI.StimAfterPokeOut = false;
 TaskParameters.GUIMeta.StimAfterPokeOut.Style = 'checkbox';
 TaskParameters.GUI.BeepAfterMinSampling = false;
 TaskParameters.GUIMeta.BeepAfterMinSampling.Style = 'checkbox';
-TaskParameters.GUIPanels.Auditory = {'SumRates'};
+TaskParameters.GUIPanels.PoissonClicks = {'SumRates'};
 TaskParameters.GUIPanels.LightIntensity = {'LeftPokeAttenPrcnt','CenterPokeAttenPrcnt','RightPokeAttenPrcnt','StimAfterPokeOut', 'BeepAfterMinSampling'};
-TaskParameters.GUIPanels.SoundIntensity = {'LeftSpeakerAttenPrcnt','RightSpeakerAttenPrcnt'};
+TaskParameters.GUIPanels.SoundIntensity = {'UsePCSpeakers','AudStimType','LeftSpeakerAttenPrcnt','RightSpeakerAttenPrcnt'};
 TaskParameters.GUIPanels.StimulusSelection = {'OmegaTable','TableNote','BetaDistAlphaNBeta','StimulusSelectionCriteria','LeftBias','LeftBiasVal','CorrectBias'};
 TaskParameters.GUIPanels.Sampling = {'RewardAfterMinSampling','CenterPortRewAmount','MinSampleMin',...
                                      'MinSampleMax','MinSampleType','MinSampleIncr','MinSampleDecr','MinSampleNumInterval','MinSampleRandProb',...
@@ -280,9 +286,10 @@ TaskParameters.GUIPanels.Optogenetics = {'OptoProb', 'OptoOr2P',...
 TaskParameters.GUI = orderfields(TaskParameters.GUI);
 %% Tabs
 TaskParameters.GUITabs.General = {'CurrentTrial','Experiment','General','FeedbackDelay','StimDelay'};
-TaskParameters.GUITabs.Sampling = {'CurrentTrial','LightIntensity','Auditory','SoundIntensity','Sampling','StimulusSelection'};
+TaskParameters.GUITabs.Sampling = {'CurrentTrial','LightIntensity','Sampling','StimulusSelection'};
 TaskParameters.GUITabs.Blocks = {'CurrentTrial','Block2'};
 TaskParameters.GUITabs.Visual = {'CurrentTrial','Grating','RandomDots','VisualGeneral'};
+TaskParameters.GUITabs.Auditory = {'CurrentTrial','PoissonClicks','SoundIntensity',};
 TaskParameters.GUITabs.Triggers = {'Optogenetics','AirControl'};
 TaskParameters.GUITabs.Plots = {'ShowPlots','Vevaiometric'};
 %%Non-GUI Parameters (but saved)

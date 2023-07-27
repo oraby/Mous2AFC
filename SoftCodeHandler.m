@@ -26,6 +26,11 @@ elseif softCode == 5
 elseif softCode == 6
     BpodSystem.SystemSettings.dotsMapped_file.Data(1:4) =...
                                                     typecast(uint32(0), 'uint8');
+elseif softCode == 7 % Sound stimulus start
+    PsychPortAudio('Start', BpodSystem.Data.Custom.soundParams.pahandle,...
+                   0); % 0 = infinte sound loop
+elseif softCode == 8
+    PsychPortAudio('Stop', BpodSystem.Data.Custom.soundParams.pahandle);
 elseif softCode == 30 && BpodSystem.Data.Custom.IsHomeCage
     disp('Reporting animal is using the system at this very moment.');
     BpodSystem.ProtocolSettings.HomeCage.ReportAnimalInsideFn();

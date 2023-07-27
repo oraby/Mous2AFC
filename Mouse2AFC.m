@@ -97,7 +97,8 @@ if TaskParameters.GUI.ExperimentType == ExperimentType.Auditory && ~BpodSystem.E
     SendCustomPulseTrain(1, BpodSystem.Data.Custom.RightClickTrain{1}, ones(1,length(BpodSystem.Data.Custom.RightClickTrain{1}))*5);
     SendCustomPulseTrain(2, BpodSystem.Data.Custom.LeftClickTrain{1}, ones(1,length(BpodSystem.Data.Custom.LeftClickTrain{1}))*5);
 end
-
+%% Configure SoundIntensity
+BpodSystem.Data.Custom.soundParams = InitSoundStim(AudStimType.String(TaskParameters.GUI.AudStimType));
 
 % Set current stimulus for next trial - set between -100 to +100
 TaskParameters.GUI.CurrentStim = iff(BpodSystem.Data.Custom.Trials(1).DV > 0, (BpodSystem.Data.Custom.Trials(1).DV + 1)/0.02,(BpodSystem.Data.Custom.Trials(1).DV - 1)/0.02);
@@ -146,6 +147,12 @@ while true
     end
     CheckHomeCageStop(BpodSystem);
     if BpodBeingUsed(BpodSystem) == 0
+        try
+            % We can also specify: BpodSystem.Data.Custom.soundParams.pahandle
+            % as second argument to close
+            PsychPortAudio('Close');
+        catch
+        end
         SavedTaskParameters = BpodSystem.ProtocolSettings;
         if ~BpodSystem.Data.Custom.IsHomeCage
             CheckUnsaved(TaskParameters, SavedTaskParameters,...
@@ -162,6 +169,10 @@ while true
             end
         end
         SessionAnalysis(dataPath);
+        try % Try to release audio device
+            PsychPortAudio('Close');
+        catch
+        end
         return
     end
     HandlePauseCondition; % Checks to see if the protocol is paused. If so, waits until user resumes.

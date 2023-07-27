@@ -1,19 +1,17 @@
-function [DeliverStimulus, ContDeliverStimulus, StopStimulus,...
-  ChoiceStopStimulus, EWDStopStimulus, GUI, drawParams] =...
-        HandleStateMatrixStim(GUI, CurTrial, LeftPort, LeftPWM,...
-                              RightPort, RightPWM, dotsMapped_file)
+function [DeliverStimulus, ContDeliverStimulus, StopStimulus, GUI,...
+    drawParams] = HandleStateMatrixStim(GUI, CurTrial, LeftPort, LeftPWM,...
+                                        RightPort, RightPWM, soundParams,...
+                                        dotsMapped_file)
 %TODO: Create drawParams as persistent object
 drawParams = struct;
 %The rest of this function continue down below
 
-function [DeliverStimulus_, ContDeliverStimulus_, StopStimulus_,...
-          ChoiceStopStimulus_, EWDStopStimulus_] = SingleExpType(ExpType, DV)
+function [DeliverStimulus_, ContDeliverStimulus_, StopStimulus_] = ...
+    SingleExpType(ExpType, DV)
 if ExpType == ExperimentType.Auditory
     DeliverStimulus_ =  {'BNCState',1};
     ContDeliverStimulus_ = {};
-    StopStimulus_ = iff(GUI.StimAfterPokeOut, {}, {'BNCState',0});
-    ChoiceStopStimulus_ = iff(GUI.StimAfterPokeOut, {'BNCState',0}, {});
-    EWDStopStimulus_ = {'BNCState',0};
+    StopStimulus_ = {'BNCState',0};
 elseif ExpType == ExperimentType.LightIntensity
     % Divide Intensity by 100 to get fraction value
     LeftPWMStim = round(CurTrial.LightIntensityLeft*LeftPWM/100);
@@ -21,23 +19,34 @@ elseif ExpType == ExperimentType.LightIntensity
     DeliverStimulus_ = {strcat('PWM',num2str(LeftPort)),LeftPWMStim,...
                         strcat('PWM',num2str(RightPort)),RightPWMStim};
     ContDeliverStimulus_ = DeliverStimulus_;
-    StopStimulus_ = iff(GUI.StimAfterPokeOut, DeliverStimulus_, {});
-    ChoiceStopStimulus_ = {};
-    EWDStopStimulus_ = {};
+    StopStimulus_ = {};
 elseif ExpType == ExperimentType.SoundIntensity
-    LeftSoundPort = floor(mod(GUI.Ports_LMRAudLRAir/100,10));
-    RightSoundPort = floor(mod(GUI.Ports_LMRAudLRAir/10,10));
-    LeftSoundPWM = round((100-GUI.LeftSpeakerAttenPrcnt) * 2.55);
-    RightSoundPWM = round((100-GUI.RightSpeakerAttenPrcnt) * 2.55);
-    % Divide maxsound by 100 to get fraction value
-    LeftPWMSound = round(CurTrial.SoundIntensityLeft*LeftSoundPWM/100);
-    RightPWMSound = round(CurTrial.SoundIntensityRight*RightSoundPWM/100);
-    DeliverStimulus_ = {strcat('PWM',num2str(LeftSoundPort)),LeftPWMSound,...
-                        strcat('PWM',num2str(RightSoundPort)),RightPWMSound};
-    ContDeliverStimulus_ = DeliverStimulus_;
-    StopStimulus_ = iff(GUI.StimAfterPokeOut, DeliverStimulus_, {});
-    ChoiceStopStimulus_ = {};
-    EWDStopStimulus_ = {};
+    if GUI.UsePCSpeakers
+        trialWav = soundParams.origWav;
+        % Get the other channel to modify it
+        otherChannelIdx = iff(DV < 0, 1, 2);
+        if contains(AudStimType.String(GUI.AudStimType), 'Stereo')
+            trialWav(otherChannelIdx,:) = trialWav(mod(2+otherChannelIdx,2)+1,:);
+        else
+            trialWav(otherChannelIdx,:) = (1-abs(DV))*trialWav(otherChannelIdx,:);
+        end
+        PsychPortAudio('FillBuffer', soundParams.pahandle, trialWav);
+        DeliverStimulus_ = {'SoftCode',7};
+        ContDeliverStimulus_ = {};
+        StopStimulus_ = {'SoftCode',8};
+    else
+        LeftSoundPort = floor(mod(GUI.Ports_LMRAudLRAir/100,10));
+        RightSoundPort = floor(mod(GUI.Ports_LMRAudLRAir/10,10));
+        LeftSoundPWM = round((100-GUI.LeftSpeakerAttenPrcnt) * 2.55);
+        RightSoundPWM = round((100-GUI.RightSpeakerAttenPrcnt) * 2.55);
+        % Divide maxsound by 100 to get fraction value
+        LeftPWMSound = round(CurTrial.SoundIntensityLeft*LeftSoundPWM/100);
+        RightPWMSound = round(CurTrial.SoundIntensityRight*RightSoundPWM/100);
+        DeliverStimulus_ = {strcat('PWM',num2str(LeftSoundPort)),LeftPWMSound,...
+                            strcat('PWM',num2str(RightSoundPort)),RightPWMSound};
+        ContDeliverStimulus_ = DeliverStimulus_;
+        StopStimulus_ = {};
+    end
 elseif ExpType == ExperimentType.GratingOrientation
     rightPortAngle = VisualStimAngle.getDegrees(GUI.VisualStimAnglePortRight);
     leftPortAngle = VisualStimAngle.getDegrees(GUI.VisualStimAnglePortLeft);
@@ -80,9 +89,7 @@ elseif ExpType == ExperimentType.GratingOrientation
 
     DeliverStimulus_ = {'SoftCode',5};
     ContDeliverStimulus_ = {};
-    StopStimulus_ = iff(GUI.StimAfterPokeOut, {}, {'SoftCode',6});
-    ChoiceStopStimulus_ = iff(GUI.StimAfterPokeOut, {'SoftCode',6}, {});
-    EWDStopStimulus_ = {'SoftCode',6};
+    StopStimulus_ = {'SoftCode',6};
 elseif ExpType == ExperimentType.RandomDots
     % Setup the parameters
     % Use 20% of the screen size. Assume apertureSize is the diameter
@@ -111,37 +118,27 @@ elseif ExpType == ExperimentType.RandomDots
 
     DeliverStimulus_ = {'SoftCode',5};
     ContDeliverStimulus_ = {};
-    StopStimulus_ = iff(GUI.StimAfterPokeOut, {}, {'SoftCode',6});
-    ChoiceStopStimulus_ = iff(GUI.StimAfterPokeOut, {'SoftCode',6}, {});
-    EWDStopStimulus_ = {'SoftCode',6};
+    StopStimulus_ = {'SoftCode',6};
 elseif ExpType == ExperimentType.NoStimulus
     DeliverStimulus_ = {};
     ContDeliverStimulus_ = {};
     StopStimulus_ = {};
-    ChoiceStopStimulus_ = {};
-    EWDStopStimulus_ = {};
 else
     assert(false, 'Unexpected ExperimentType');
 end
 end
 
-[DeliverStimulus1, ContDeliverStimulus1, StopStimulus1, ChoiceStopStimulus1,...
- EWDStopStimulus1] = SingleExpType(GUI.ExperimentType, CurTrial.DV);
-
+[DeliverStimulus1, ContDeliverStimulus1, StopStimulus1] = SingleExpType(...
+                                                GUI.ExperimentType, CurTrial.DV);
 if ~isnan(CurTrial.SecDV)
-    [DeliverStimulus2, ContDeliverStimulus2, StopStimulus2,...
-     ChoiceStopStimulus2, EWDStopStimulus2] = SingleExpType(...
+    [DeliverStimulus2, ContDeliverStimulus2, StopStimulus2,] = SingleExpType(...
                                           GUI.SecExperimentType, CurTrial.SecDV);
 else
     DeliverStimulus2 = {};
     ContDeliverStimulus2 = {};
     StopStimulus2 = {};
-    ChoiceStopStimulus2 = {};
-    EWDStopStimulus2 = {};
 end
 DeliverStimulus = [DeliverStimulus1 DeliverStimulus2];
 ContDeliverStimulus = [ContDeliverStimulus1 ContDeliverStimulus2];
 StopStimulus = [StopStimulus1 StopStimulus2];
-ChoiceStopStimulus = [ChoiceStopStimulus1 ChoiceStopStimulus2];
-EWDStopStimulus = [EWDStopStimulus1 EWDStopStimulus2];
 end
