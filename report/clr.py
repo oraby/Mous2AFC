@@ -40,7 +40,7 @@ class BrainRegion:
   RSP_Bi = "brown"
 
   def __getitem__(self, brain_region):
-    from definitions import BrainRegion as BR
+    from .definitions import BrainRegion as BR
     if isinstance(brain_region, BR):
       brain_region = str(BR(brain_region))
     return getattr(self, brain_region, "gray")

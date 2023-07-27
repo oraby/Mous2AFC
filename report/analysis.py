@@ -15,10 +15,12 @@ import numpy as np
 import pandas as pd
 from enum import Enum, auto, unique
 try:
-  from utils import grpBySess, rngDV
+  import splitdata
+  from utils import grpBySess
   from definitions import ExpType
 except ImportError: # Bad hack until we figure how to unify this
-  from .utils import grpBySess, rngDV
+  from . import splitdata
+  from .utils import grpBySess
   from .definitions import ExpType
 
 #analysis_for = ExpType.LightIntensity if "lightchasing" in DF_FILE.lower() \
@@ -61,7 +63,7 @@ def setMatplotlibParams(silent=False):
       mpl.rcParams[attr_name] = new_attr_val
 
     DPI = 600
-    FORMATS = [".png"]#,".tiff",".pdf",".svg"]
+    FORMATS = [".pdf"]#".jpeg", .tiff",".pdf",".svg"]
     mpl.rcParams['pdf.fonttype'] = 42
     mpl.rcParams['ps.fonttype'] = 42
 
@@ -201,8 +203,8 @@ def performanceOverTime(df, head_fixation_date=None, single_session=None,
   port_cue_led = []
   MT = []
   MT_std = []
-  reaction_time = []
-  reaction_time_std = []
+  decision_time = []
+  decision_time_std = []
   num_difficulties = []
   difficulties = [] # This will be array of arrays
   difficulties_perf = [] # Ditto
@@ -236,8 +238,8 @@ def performanceOverTime(df, head_fixation_date=None, single_session=None,
     port_cue_led.append(block.ForcedLEDTrial.sum()/num_trials) # Can't we just use mean()?
     MT.append(block.calcMovementTime.mean())
     MT_std.append(block.calcMovementTime.std())
-    reaction_time.append(block.calcReactionTime.mean())
-    reaction_time_std.append(block.calcReactionTime.std())
+    decision_time.append(block.calcDecisionTime.mean())
+    decision_time_std.append(block.calcDecisionTime.std())
     used_feedback_delay.append(block.GUI_FeedbackDelayMax.mean())
     catch_error_trials = block[(block.GUI_CatchError == True) &
                                (block.ChoiceCorrect == 0)]
@@ -377,10 +379,10 @@ def performanceOverTime(df, head_fixation_date=None, single_session=None,
         shaded_alpha=[0.04, 0.1, 0.1, None, None, None]
     linestyle=['-', '-','-','-',"None","None"]
     marker=[None,None,None,None,'+','+']
-    label=["Sampling Time (s)", "Movement Time (s)", "Reaction Time (s)",
+    label=["Sampling Time (s)", "Movement Time (s)", "Decision Time (s)",
            "Used Feedback Delay (s)", "Catch Correct (s)", "Catch Error (s)"]
-    stds = [sampling_std, MT_std, reaction_time_std, None, None, None]
-    for i, metric_data in enumerate([sampling_time, MT, reaction_time,
+    stds = [sampling_std, MT_std, decision_time_std, None, None, None]
+    for i, metric_data in enumerate([sampling_time, MT, decision_time,
                                      used_feedback_delay, catch_wt_correct,
                                      catch_wt_error]):
       if plots[i] not in draw_plots or np.nansum(metric_data) == 0:
@@ -403,7 +405,7 @@ def performanceOverTime(df, head_fixation_date=None, single_session=None,
     axes.axvline(x=head_fixation_session,color='gray',linestyle='-',alpha=1,
                  zorder=-1)
     lines.append(Line2D([], [], marker='|',linestyle='None',color='gray',
-                 alpha=0.8, markersize=10*SCALE_X))
+                 alpha=0.8, ms=10*SCALE_X))
     labels.append("$1^{st}$ head-fixed session")
 
   if not axes_legend:
@@ -420,7 +422,7 @@ def performanceOverTime(df, head_fixation_date=None, single_session=None,
         if i not in num_difficulties:
           continue
         lines3.append(Line2D([], [], color=colorMapIdx(i),
-                      marker='o', linestyle='None', markersize=7.5*SCALE_X,
+                      marker='o', linestyle='None', ms=7.5*SCALE_X,
                       markeredgecolor='k'))
         labels3.append('{} difficult{}'.format(i, 'y' if i == 1 else 'ies'))
 
@@ -587,7 +589,7 @@ def stackMetric(metric_col_name, df, axes_raw, axes_avg, *,
       if stack_metric_unit == StackMetricUnit.Percent:
         means_array = np.array(means_array)*100
       axes_raw.scatter([x_val]*len(means_array), means_array, color=color,
-                       s=2, label=label if x_tick is 0 else None)
+                       s=2, label=label if x_tick == 0 else None)
       metric_mean_of_means.append(np.mean(means_array))
       from scipy.stats import sem # Could also just create a pandas series
       metric_sem.append(sem(means_array))
@@ -769,19 +771,12 @@ def trialRate(df, *, ax, max_sess_time_lim_bug, IQR_filter, num_days_per_clr,
   return x_data, y_data
 
 def splitByDV(df, combine_sides=False, periods=3, separate_zero=True):
-    rng = rngDV(periods=periods, combine_sides=combine_sides,
-                separate_zero=separate_zero)
-    groups = []
-    DV = df.DV if not combine_sides else df.DV.abs()
-    # TODO: Can't we just use df.groupby(pd.cut(df, rng))?
-    for (left, right)  in zip(rng, rng[1:]):
-        if left >= 0:
-          group_df = df[(left <= DV) & (DV < right)]
-        else:
-          group_df = df[(left < DV) & (df.DV <= right)]
-        entry = pd.Interval(left=left, right=right), (left+right)/2, group_df
-        groups.append(entry)
-    return groups
+  try:
+    from .splitdata import byDV
+  except ImportError:
+    from splitdata import byDV
+  return byDV(df, combine_sides=combine_sides, periods=periods,
+              separate_zero=separate_zero)
 
 
 def interceptSlope(df):
@@ -838,7 +833,7 @@ def psychAxes(animal_name="", axes=None, analysis_for=ExpType.RDK,
 
 def psychAll(df, PsycStim_axes, *, color, legend_name, linestyle, periods=5,
              fitkargs={}):
-    _psych(df, PsycStim_axes, periods=periods, color=color, linewidth=3,
+    _psych(df, PsycStim_axes, periods=periods, color=color, linewidth=4,
            legend_name=legend_name, linestyle=linestyle, fitkargs=fitkargs)
 
 import numpy as np
@@ -885,9 +880,12 @@ def psychFitBasic(stims, stim_count, stim_ratio_correct, parstart=_parstart,
                                      parmax=parmax, nfits=nfits)
   output_str = f"α: {pars[0]} - β: {pars[1]} - λ1: {pars[2]}" +\
                f" - λ2: {pars[3]}" if len(pars) == 4 else ""
-  if sys.stdout.encoding != "UTF-8":
-    output_str = output_str.encode(sys.stdout.encoding, errors='replace')
-  print(output_str)
+  try:
+    if sys.stdout.encoding != "UTF-8":
+        output_str = output_str.encode(sys.stdout.encoding, errors='replace')
+    print(output_str)
+  except:
+    pass
   #print("Pars:", pars)
   #ax.plot(stims, data[2,:]*100, 'bs', mfc='b')
   fn = getattr(psychofit, P_model) # Get the right function from the module
@@ -934,7 +932,7 @@ def _psych(df, PsycStim_axes, color, linewidth, legend_name, *, periods=5,
                                                           #EXTRA_BIN*(1/DVNBin))
       PsycStim_axes.plot(PsycX, PsycY, linestyle='none', marker=marker,
                          markeredgecolor=color, markerfacecolor=color,
-                         markerSize=markersize*linewidth*SCALE_X, alpha=alpha)
+                         ms=markersize*linewidth*SCALE_X, alpha=alpha)
       if annotate_pts:
         DVCount = [len(dv_df) for _, _, dv_df in df_by_dv]
         for x, y, count in zip(PsycX, PsycY, DVCount):
@@ -951,7 +949,7 @@ def _psych(df, PsycStim_axes, color, linewidth, legend_name, *, periods=5,
         if crit == PsychFitCrit.MaxLikelihood:
           if len(legend_name):
             legend_name="{}{}".format(legend_name,
-                    "" if not plot_points else " ({:,} Versuche)".format(len(df)))
+                    "" if not plot_points else " ({:,} Trials)".format(len(df)))
           intercept, slope, (x_sampled, y_points) = newFit(df, PsycStim_axes,
             combine_sides=combine_sides, periods=periods, color=color,
             alpha=alpha, linestyle=linestyle, linewidth=linewidth*SCALE_X,
@@ -1045,7 +1043,7 @@ def psychByAnimal(df, use_chosen_days, PsycStim_axes, *, min_session_len,
     used_lc_sessions = []
     for idx, (animal_name, animal_df) in enumerate(df.groupby(df.Name)):
       if use_chosen_days:
-        animal_days = chosen_days.get(animal_name, None)
+        animal_days = use_chosen_days.get(animal_name, None)
         if animal_days:
           animal_df = animal_df[animal_df.Date.isin(animal_days)]
         else:
@@ -1116,7 +1114,7 @@ def dfGenerator():
 
 METHOD="sum"
 def psychAnimalSessions(df, ANIMAL, PsycStim_axes, METHOD, periods=5,
-                        fitkargs={}):
+                        fitkargs={}, plot_trials_count=True):
     if not len(df):
         return
     assert len(df.Name.unique()) == 1 # Assure that we only have one mouse
@@ -1130,7 +1128,7 @@ def psychAnimalSessions(df, ANIMAL, PsycStim_axes, METHOD, periods=5,
       #print("Session:",date,session_num)
       if is1sess:
         num_trials = session.MaxTrial.unique()[0]
-        title = f"Alle Versuche"
+        title = f"All Trials"
         LINE_WIDTH=3
       else:
         title="Single Session Performance" if not done_once else ""
@@ -1150,27 +1148,34 @@ def psychAnimalSessions(df, ANIMAL, PsycStim_axes, METHOD, periods=5,
              offset=True, periods=periods, fitkargs=fitkargs)
     else:
       sessions = df
-    twax = plotNormTrialDistrib(sessions, PsycStim_axes, METHOD,
-                       periods=periods)
     handles, labels = PsycStim_axes.get_legend_handles_labels()
+    if plot_trials_count:
+      twax = plotNormTrialDistrib(sessions, PsycStim_axes, METHOD,
+                        periods=periods)
+      handles2, labels2 = twax.get_legend_handles_labels()
+      handles += handles2
+      labels += labels2
+    else:
+      PsycStim_axes.spines['top'].set_visible(False)
+      PsycStim_axes.spines['right'].set_visible(False)
     if not is1sess:
       labels[0] = labels[0] + " ({:,} sessions)".format(len(used_sessions))
     #PsycStim_axes.legend(handles, labels, loc='upper left', prop={'size': 'x-small'})
-    handles2, labels2 = twax.get_legend_handles_labels()
     bbox_to_anchor = (0.5, -0.2)
-    PsycStim_axes.legend(handles+handles2, labels+labels2, loc='upper center',
+    PsycStim_axes.legend(handles, labels, loc='upper center',
               bbox_to_anchor=bbox_to_anchor,ncol=2,fancybox=True,
               prop={'size': 'x-small'})
 
 def plotNormTrialDistrib(df, axes, METHOD, periods=5):
     difficulties = df[df.ChoiceLeft.isnull() & df.ForcedLEDTrial == 0].DV
-    bins = rngDV(periods=periods)
+    bins = splitdata.rngDV(periods=periods, combine_sides=False,
+                           separate_zero=True)
     counts, _ = np.histogram(difficulties,bins=bins)
     counts = counts.astype(np.float)
     twax = axes.twinx()
-    twax.set_ylabel("Versuche Zählen")
+    twax.set_ylabel("Trial Count")
     twax.bar(bins[:-1], counts, width=np.diff(bins), align='edge', zorder=-1,
-             color='pink', edgecolor='k', label="Normalisiert Schwierigkeitsverteilung")
+             color='pink', edgecolor='k', label="Norm. difficulty distribution")
     if METHOD == "sum":
       twax.set_ylim(0, np.sum(counts))
     axes.set_zorder(twax.get_zorder()+1)
@@ -1215,14 +1220,14 @@ def plotMT(df, color, axes, normalize):
     groups = df.groupby(df.DV)
     Xs=[]
     Ys=[]
-    min_rt, max_rt = 100, 0
+    min_dt, max_dt = 100, 0
     for group_name, group in groups:
       if len(group) < 100:
         continue
       Xs.append(group_name)
-      Ys.append(group.calcReactionTime.median())
-      min_rt = min(min_rt, group.calcReactionTime.median())
-      max_rt = max(max_rt, group.calcReactionTime.median())
+      Ys.append(group.calcDecisionTime.median())
+      min_dt = min(min_dt, group.calcDecisionTime.median())
+      max_dt = max(max_dt, group.calcDecisionTime.median())
       #print("Group:", group.MT.mean(), "Group_name:", group_name)
     Xs=np.array(Xs,dtype=np.float)
     Ys=np.array(Ys,dtype=np.float)
@@ -1230,7 +1235,7 @@ def plotMT(df, color, axes, normalize):
       print("Ys:",Ys)
       Ys/=Ys.max()
     else:
-      axes.set_ylim([min_rt,max_rt])
+      axes.set_ylim([min_dt,max_dt])
     axes.plot(Xs,Ys,color=color,marker='o',label=df.Name.unique()[0])
 
 def plotEWD(df, color, axes):
@@ -1779,7 +1784,7 @@ def accuracyWT(df, filterGroupFn, axes, how=AccWTMethod.Hist, normalized=False,
   count_incorrect = 0
 
   from math import floor, ceil
-  BIN_SIZE_SEC=1 if not normalized else 0.1
+  BIN_SIZE_SEC=0.5 if not normalized else 0.1
   bins_range = np.arange(floor(catch_trials.FeedbackTime.min()),
                          ceil(catch_trials.FeedbackTime.max()) + 1, BIN_SIZE_SEC)
   print("Used bins:", bins_range)
@@ -1788,7 +1793,7 @@ def accuracyWT(df, filterGroupFn, axes, how=AccWTMethod.Hist, normalized=False,
   assert (hist_bins == bins_range).all(), "Hist bins should match bins_range"
 
   if how == AccWTMethod.Every100:
-    num_bins = ceil(len(catch_trials)/100)
+    num_bins = ceil(len(catch_trials)/50)
     buckets = pd.qcut(catch_trials.FeedbackTime, num_bins)
     buckets = catch_trials.groupby(buckets)
     #print("Buckets", buckets)
@@ -2036,7 +2041,7 @@ def processCombination(arg):
   num_sessions = len(df.Date.unique())
   num_sessions_txt = "No. of sessions:" + str(num_sessions)
   print(num_sessions_txt)
-  if num_sessions is 0:
+  if num_sessions == 0:
       print("Skipping:", operations, animal_name)
       return
 

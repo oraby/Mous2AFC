@@ -1,5 +1,6 @@
 import inspect
-from definitions import BrainRegion, MatrixState
+from report.utils import grpBySess
+from report.definitions import BrainRegion, MatrixState
 
 class ChainedGrpBy:
   def __init__(self, df, descr=None):
@@ -187,7 +188,7 @@ def filterNoOptoConfigs(df):
 
 def splitByBinarySamplingTime(df):
   # Get all opto trials during sampling phase
-  from definitions import MatrixState
+  from report.definitions import MatrixState
   df_stim_delv = df[df.GUI_OptoStartState1 ==
                     int(MatrixState.stimulus_delivery)]
   # Filter for trials where opto was triggered after 0 second or was triggered
@@ -215,18 +216,48 @@ def splitByOptoTiming(df):
     grp_key = (grp_key, START_DELAY, MAX_DUR,)
     grps_concat.append((grp_key, grp_df,))
   for grp_key, grp_df in grpByOptoConfig(df_partial_sampling):
+    start_state, start_delay, max_dur = grp_key
+    # if start_state == int(MatrixState.stimulus_delivery):
+    #   unique_min_sample = grp_df.MinSample.unique()
+    #   # if len(unique_min_sample) == 1 and unique_min_sample == 1:
+    #   #   max_dur = MAX_DUR
+    #   #   grp_key = (start_state, start_delay, max_dur)
     grps_concat.append((grp_key, grp_df,))
-  grps_concat.sort() #lambda entry:entry[0][1])
-  # print( [key for key, _ in grps_concat])
+  # Sort by early, full, then late
+  grps_concat = sorted(grps_concat,
+                       key=lambda entry:(entry[0][0],entry[0][1],-entry[0][2]))
   return grps_concat
+
+# def filterBadCntrlPerformanceSsns(df):
+#   used_sessions = []
+#   for ssn_info, ssn_df in grpBySess(df):
+#     cntrl_df = ssn_df[ssn_df.OptoEnabled == 0]
+#     if len(cntrl_df) == len(ssn_df): # No opto trials
+#       continue
+#     easy_trials = cntrl_df[cntrl_df.DV.abs()*100 == cntrl_df.Difficulty1]
+#     l_easy = easy_trials[easy_trials.LeftRewarded == 1]
+#     r_easy = easy_trials[easy_trials.LeftRewarded == 0]
+#     if not len(l_easy) or not len(r_easy):
+#       continue
+#     if l_easy.ChoiceCorrect.mean() < 0.8 or r_easy.ChoiceCorrect.mean() < 0.8:
+#       continue
+#     used_sessions.append(ssn_df)
+#   import pandas as pd
+#   if len(used_sessions):
+#     return pd.concat(used_sessions)
+#   else:
+#     return pd.DataFrame(columns=df.columns)
 
 def commonOptoSectionFilter(df, *, by_session, by_animal):
   MIN_NUM_TRIALS_PER_STATE = 50
   MIN_NUM_TRIALS_PER_SESS = 20
+  # df = filterBadCntrlPerformanceSsns(df)
+  if by_session:
+    assert by_animal
   min_choice_trials = MIN_NUM_TRIALS_PER_SESS if by_session \
                                               else MIN_NUM_TRIALS_PER_STATE
   control_trials, opto_trials = splitToControlOpto(df)
-
+  # print(f"Control len: {len(control_trials)} - Opto len: {len(opto_trials)}")
   def expand(trials_df):
     trials_df = ChainedGrpBy(trials_df)
     if by_animal:
@@ -238,15 +269,21 @@ def commonOptoSectionFilter(df, *, by_session, by_animal):
   opto_trials = expand(opto_trials)
 
   def fltrMinChoiceTrials(df):
-    return len(df[df.ChoiceCorrect.notnull()]) >= min_choice_trials
+    # TODO: Take col name as arg and do len(df[df[df_col_name].notnull()])
+    return len(df) >= min_choice_trials
   control_trials = control_trials.filter(fltrMinChoiceTrials)
   opto_trials =  opto_trials.filter(fltrMinChoiceTrials)
 
   def filterIfNotExist(df, src_info, *, df_info=None):
     return df_info in src_info
+  len_opto_trials_before, len_cntrl_trials_before = len(opto_trials), len(control_trials)
   opto_info = set([grp_info for grp_info, _ in opto_trials])
   control_trials = control_trials.filter(filterIfNotExist, opto_info)
   control_info = set([grp_info for grp_info, _ in control_trials])
   opto_trials = opto_trials.filter(filterIfNotExist, control_info)
+  if len(opto_trials) != len_opto_trials_before:
+    print("---- Control trials:", len(control_trials), "- before:", len_cntrl_trials_before)
+    print("---- Opto trials:", len(opto_trials), "- before:", len_opto_trials_before)
+  # print("---- Opto trials:", len(opto_trials))
 
   return control_trials, opto_trials

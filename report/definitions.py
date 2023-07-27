@@ -26,10 +26,28 @@ class ExperimentType(IntEnumShortStr):
 
 ExpType = ExperimentType
 
+class MinSamplingType(FloatEnumShortStr):
+  Unkown = np_nan
+  FixMin = 1
+  AutoIncr = 2
+  RandBetMinMax_DefIsMax = 3
+  RandNumIntervalsMinMax_DefIsMax = 4
+
 class MouseState(FloatEnumShortStr):
   Unkown = np_nan
   FreelyMoving = 1
   HeadFixed = 2
+
+class FeedbackDelaySelection(IntEnumShortStr):
+  Fix = 1
+  AutoIncr = 2
+  TruncExp = 3
+  NotUsed = 4
+
+class Blk2Policy(IntEnumShortStr):
+  NotUsed = 1
+  ReverseBias = 2
+  SwapPrimSecExps = 3
 
 class BrainRegion(IntEnumShortStr):
   V1_L = 1
@@ -56,6 +74,13 @@ class BrainRegion(IntEnumShortStr):
   M1_L = 22
   M1_R = 23
   M1_Bi = 24
+
+class StimAfterPokeOut(IntEnumShortStr):
+  NotUsed = 0
+  UntilFeedbackStart = 1
+  UntilFeedbackEnd = 2
+  UntilEndOfTrial = 3
+  NotUsedMatlab = 4
 
 class MatrixState(IntEnumShortStr):
   ITI_Signal = 1
@@ -89,6 +114,9 @@ class MatrixState(IntEnumShortStr):
   timeOut_missed_choice = 29
   ITI = 30
   ext_ITI = 31
+  WaitPunishOut = 32
+  WaitPunishEnd = 33
+  StimulusTime = 34
 
   def __format__(self, fmt):
     _str = self.__str__()

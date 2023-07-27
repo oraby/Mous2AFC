@@ -1,8 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
-import analysis
-from clr import BrainRegion as BRC
+from report import analysis
+from report.clr import BrainRegion as BRC
 from .optoutil import ChainedGrpBy, optoConfigStr, commonOptoSectionFilter
 
 def psychGroups(ax, trials_groups, *, combine_sides, _plot_kargs, _psych_kargs,
@@ -98,6 +98,10 @@ def optoPsychPlot(animal_name, df, *, save_figs, save_prefix, combine_sides,
     print(f"No valid sessions found for {region_legend_str}. Returning")
     return
 
+  # _df = opto_trials.toDF()
+  # for name, sub_df in _df.groupby(_df.Name):
+  #   print("Opto trials names: df[(df.Name ==", name, "& (df.Date <=", sub_df.Date.min(),")]")
+
   if PsycStim_axes is None:
     PsycStim_axes = analysis.psychAxes(f"{animal_name} - {part_legend_str} "
                                        "Opto", combine_sides=combine_sides)
@@ -117,20 +121,28 @@ def optoPsychPlot(animal_name, df, *, save_figs, save_prefix, combine_sides,
     psychGroups(PsycStim_axes, df_groups, combine_sides=combine_sides,
                 _plot_kargs=_plot_kargs, _psych_kargs=_psych_kargs,
                 err_xoffset=err_xoffset)
-  # Sort legend by labels
-  handles, labels = PsycStim_axes.get_legend_handles_labels()
-  handles_labels = sorted(zip(handles, labels), key=lambda hndl_lbl:hndl_lbl[1])
-  handels, labels = zip(*handles_labels)
-  PsycStim_axes.legend(handels, labels,
-                       prop={'size':'x-small'}, loc='lower left',
-                       bbox_to_anchor=(1.01, 0))
+  if False:
+    # Sort legend by labels
+    handles, labels = PsycStim_axes.get_legend_handles_labels()
+    handles_labels = sorted(zip(handles, labels), key=lambda hndl_lbl:hndl_lbl[1])
+    handels, labels = zip(*handles_labels)
+    PsycStim_axes.legend(handels, labels,
+                        prop={'size':'x-small'}, loc='lower left',
+                        bbox_to_anchor=(1.01, 0))
+
+  PsycStim_axes.set_title("")
+  PsycStim_axes.spines['top'].set_visible(False)
+  PsycStim_axes.spines['right'].set_visible(False)
   if save_figs:
     if combine_sides: save_prefix += "one_side_"
     analysis.savePlot(save_prefix + f"psych_{part_legend_str}_{animal_name}")
+  return PsycStim_axes
 
-def optoPsychByAnimal(animal_name, df, *, by_animal, by_session,
-                      combine_sides, save_figs, save_prefix):
-  save_prefix += f"{animal_name}/"
+def optoPsychByAnimal(animal_name, df, *, by_animal, by_session, combine_sides,
+                      incld_grp_info_lgnd, save_figs, save_prefix,
+                      plt_figs=True, animal_folder=True):
+  if animal_folder:
+    save_prefix += f"{animal_name}/"
   for info, df in ChainedGrpBy(df).byBrainRegion().byOptoConfig():#byState():
     brain_region, opto_config = info[-2], info[-1]
     print(f"brain_region: {brain_region} - Opto config: {opto_config}")
@@ -138,9 +150,12 @@ def optoPsychByAnimal(animal_name, df, *, by_animal, by_session,
     optoPsychPlot(animal_name, df,
                   brain_region=brain_region, opto_config=opto_config,
                   by_animal=by_animal, by_session=by_session,
-                  combine_sides=combine_sides, save_figs=save_figs,
-                  save_prefix=save_prefix_cur)
-    plt.show()
+                  combine_sides=combine_sides,
+                  incld_grp_info_lgnd=incld_grp_info_lgnd,
+                  save_figs=save_figs, save_prefix=save_prefix_cur)
+    if plt_figs:
+      plt.show()
+    plt.close()
 
 def nfits(df_or_len):
   if hasattr(df_or_len, "__len__"): df_or_len = len(df_or_len)
