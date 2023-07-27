@@ -3,7 +3,10 @@
 #
 # You need to have the following libraries:
 # pip install numpy scipy matplotlib pandas scikit-learn statsmodels colour click
+# For development run:
+# conda -n analysis -c conda-forge python=3.7 numpy scipy matplotlib pandas scikit-learn statsmodels colour click tqdm ipykernel ipython
 
+from calendar import weekday
 from enum import auto
 import os
 import pathlib
@@ -13,8 +16,11 @@ import time
 import traceback
 import matplotlib.pyplot as plt
 from numpy.core.shape_base import block
-import analysis
-import mat_reader_core
+try:
+  from . import analysis
+  from . import mat_reader_core
+except:
+  from report import mat_reader_core
 
 
 class PlotHandler():
@@ -73,7 +79,11 @@ class PlotHandler():
 class MakeAndSavePlots():
   def run(self, session_df, save_dir_or_none, show_fig,
           auto_close_after_ms=None):
-    date_str = session_df.Date.unique()[0].strftime("%Y_%m_%d_%a")
+    try:
+      sess_date = session_df.Date
+    except AttributeError:
+      sess_date = session_df.SessionDate
+    date_str = sess_date.unique()[0].strftime("%Y_%m_%d_%a")
     session_num = session_df.SessionNum.unique()[0]
     animal_name = session_df.Name.unique()[0]
     protocol_name = session_df.Protocol.unique()[0]
@@ -147,15 +157,20 @@ class MakeAndSavePlots():
 
     animal_name = session_df.Name.unique()[0]
     psych_axes = analysis.psychAxes(animal_name, axes=axs[0][0])
-    from opto.optopsych import optoPsychPlot
-    from opto.optoutil import ChainedGrpBy
-    for info, sub_df in ChainedGrpBy(session_df).byBrainRegion().byOptoConfig():
-      brain_region, opto_config = info[-2], info[-1]
-      optoPsychPlot(animal_name, sub_df, PsycStim_axes=psych_axes,
-                    brain_region=brain_region, opto_config=opto_config,
-                    by_animal=True, by_session=True, combine_sides=False,
-                    save_figs=False, save_prefix=False,
-                    incld_grp_info_lgnd=False)
+    if "GUI_OptoBrainRegion" in session_df.columns:
+      from .opto.optopsych import optoPsychPlot
+      from .opto.optoutil import ChainedGrpBy
+      for info, sub_df in ChainedGrpBy(session_df).byBrainRegion().byOptoConfig():
+        brain_region, opto_config = info[-2], info[-1]
+        MIN_NUM_TRIALS = 5
+        if sub_df.OptoEnabled.sum() < MIN_NUM_TRIALS:
+          print(f"Skipping opto config psych with less than {MIN_NUM_TRIALS}")
+          continue
+        optoPsychPlot(animal_name, sub_df, PsycStim_axes=psych_axes,
+                      brain_region=brain_region, opto_config=opto_config,
+                      by_animal=True, by_session=True, combine_sides=False,
+                      save_figs=False, save_prefix=False,
+                      incld_grp_info_lgnd=False)
     analysis.psychAnimalSessions(session_df, animal_name, psych_axes,
                                  analysis.METHOD)
 
@@ -239,35 +254,32 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 
 def makeReport(session_name, save_fig=False, show_fig=True):
-  animal=session_name.split("_")[0]
+  animal = session_name.rsplit("_", 4)[0]
   matlab_file = r"C:\BpodUser\Data\__ANIMAL__\Mouse2AFC\Session Data\__SESSION__"
   matlab_file = matlab_file.replace("__ANIMAL__", animal).replace("__SESSION__", session_name)
   if save_fig:
     save_dir_or_None = r"C:\BpodUser\Data\__ANIMAL__\Mouse2AFC\Python Figures\\".replace("__ANIMAL__", animal)
   else:
     save_dir_or_None = None
+  print("matlab_file:", matlab_file)
   df = _showSaveParsed(matlab_file, save_dir_or_None=save_dir_or_None,
                        show_fig=show_fig, auto_close_after_sec=0)
   # display(df.Difficulty1)
   # plt.show()
   return df
 
-def _iterDir(animal_dir):
-  print("I have been fired for animal:", animal_dir)
-  data_path = Path(f"{animal_dir}/Mouse2AFC/Session Data")
-  figs_path_base   = Path(f"{animal_dir}/Mouse2AFC/Python Figures/")
-  # if True: # Enable for testing
-  #   def makeReport(_f, show_fig, save_fig):
-  #     print("Dry run for:", _f)
-  for _file in data_path.iterdir():
-    if _file.is_file() and _file.name.endswith(".mat"):
-      try:
-        makeReport(_file.name, show_fig=False, save_fig=True)
-      except:
-        pass
-  return f"Animal dir: {animal_dir} done"
+def _wrapMakeReport(session_name):
+  from io import StringIO
+  import sys
+  sys.stdout = mystdout = StringIO()
+  sys.stderr = mystdout
+  try:
+    makeReport(session_name, save_fig=True, show_fig=False)
+  except:
+    print("Caught fatal err:", traceback.format_exc(), file=sys.stderr)
+  return mystdout.getvalue()
 
-def regenerateAllSessionReport():
+def regenerateAllSessionReport(only_new_files=True):
   base_dir = Path(r"C:\BpodUser\data\\")
   animal_names_dirs = [_dir for _dir in base_dir.iterdir()
       if _dir.is_dir() and "Dummy" not in _dir.name and "Fake" not in _dir.name]
@@ -276,14 +288,48 @@ def regenerateAllSessionReport():
   for _dir in animal_names_dirs:
     ct = os.stat(str(_dir)).st_ctime
     ct = dt.datetime.fromtimestamp(ct)
-    if ct > dt.datetime(2020, 5, 1):
+    if True:#§ct < dt.datetime(2019, 10, 1):# and ct <= dt.datetime(2020, 5, 1):
       #print("Iterating:", _dir, "Created on:", ct)
       final_dirs.append(str(_dir))
   print("Final dirs:", final_dirs)
   n_workers = max(1, mp.cpu_count()-3)
   print(f"Using {n_workers} workers")
+  from datetime import date
+  import calendar
+  months_3letters = list(calendar.month_abbr)
   with mp.Pool(n_workers) as pool:
-    results = [pool.apply_async(_iterDir, [_dir]) for _dir in final_dirs]
+    results = []
+    def _iterDir(animal_dir):
+      nonlocal results
+      data_path = Path(f"{animal_dir}/Mouse2AFC/Session Data")
+      figs_path_base   = Path(f"{animal_dir}/Mouse2AFC/Python Figures/")
+      # if True: # Enable for testing
+      #   def makeReport(_f, show_fig, save_fig):
+      #     print("Dry run for:", _f)
+      if not data_path.exists():
+        return
+      for _file in data_path.iterdir():
+        if _file.is_file() and _file.name.endswith(".mat"):
+          if only_new_files:
+            #WTS4_Mouse2AFC_Dec04_2019_Session1.mat
+            try:
+              animal_name, _, month_day, year, sess = _file.stem.rsplit('_', 4)
+              sess_num = int(sess[7:])
+            except:
+              continue
+            year = int(year)
+            month, day = month_day[:3], int(month_day[3:])
+            month = months_3letters.index(month)
+            _date = date(year, month, day)
+            weekday = calendar.day_abbr[_date.weekday()]
+            py_fig_name = f"{year}_{month:02d}_{day:02d}_{weekday}_"\
+                          f"Sess{sess_num}_perf_{animal_name}.png"
+            #python_fig_name = "2020_01_14_Tue_Sess2_perf_WTS3.png"
+            if Path(f"{figs_path_base}/{py_fig_name}").exists():
+              continue
+          results.append(pool.apply_async(_wrapMakeReport, [_file.name]))
+      print(f"Fired {animal_dir} workers")
+    [_iterDir(_dir) for _dir in final_dirs]
     print("Fired all workers")
     for r in results:
         print(r.get())
@@ -294,4 +340,19 @@ def regenerateAllSessionReport():
   print("All done")
 
 if __name__ == "__main__":
+  print("__file__", __file__)
+  import importlib, sys, pathlib # https://stackoverflow.com/a/50395128/11996983
+  PKG = os.path.dirname(os.path.realpath(__file__))
+  PKG = pathlib.Path(PKG)
+  __package__ = f"{PKG.name}"
+  MODULE_PATH = f"{PKG}{pathlib.os.path.sep}__init__.py"
+  MODULE_NAME = f"{PKG.name}"
+  # print(MODULE_NAME, MODULE_PATH)
+  spec = importlib.util.spec_from_file_location(MODULE_NAME, MODULE_PATH)
+  module = importlib.util.module_from_spec(spec)
+  sys.modules[spec.name] = module
+  spec.loader.exec_module(module)
+
+  from . import analysis
+  from . import mat_reader_core
   showAndSaveReport()
