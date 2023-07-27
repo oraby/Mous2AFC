@@ -135,10 +135,18 @@ while true
             alreadyLoaded = true;
             alreadyStopped = false;
             alphaBlendUsed = false;
+            [screenXpixels, screenYpixels] = Screen('WindowSize', winsPtrs(1));
+            drawParams.apertureSizeWidth =...
+                min(1, drawParams.apertureSizeWidth)*screenXpixels;
+            drawParams.apertureSizeHeight =...
+                min(1, drawParams.apertureSizeHeight)*screenYpixels;
             vbl = 0; % Draw the frame asap once we are told
             if stimType == DrawStimType.RDK
-                circleArea = (pi*((drawParams.apertureSizeWidth/2).^2));
+                circleArea = pi*drawParams.apertureSizeWidth*...
+                             drawParams.apertureSizeHeight/4;
                 % Calculate the size of a dot in pixel
+                % This is buggy: winRect(3) would take the ScaleFactor of
+                % the primary screen and apply it to the second screen.
                 dotSizePx = angle2pix(drawParams.screenWidthCm, ...
                     winsRect(3),drawParams.screenDistCm, ...
                     drawParams.dotSizeInDegs);
@@ -151,8 +159,12 @@ while true
                 if dotSizePx > maxSmoothPointSize
                     dot_type = 3;
                 end
-                scaledDrawRatio = drawParams.drawRatio / dotSizePx;
-                nDots = round(circleArea * scaledDrawRatio);
+                if dot_type ~= 4
+                  dotArea = pi*((dotSizePx/2)^2);
+                else
+                  dotArea = dotSizePx^2;
+                end
+                nDots = round(drawParams.drawRatio*circleArea/dotArea);
 
                 % First we'll calculate the left, right top and bottom of the
                 % aperture (in degrees)
@@ -188,8 +200,11 @@ while true
                 % divided by the frame rate (frames/second). The units cancel, leaving
                 % degrees/frame which makes sense. Basic trigonometry (sines and cosines)
                 % allows us to determine how much the changes in the x and y position.
-                dx = drawParams.dotSpeed*sin(directions*pi/180)/frameRate;
-                dy = -drawParams.dotSpeed*cos(directions*pi/180)/frameRate;
+                dotSpeed = angle2pix(drawParams.screenWidthCm, ...
+                    winsRect(3),drawParams.screenDistCm, ...
+                    drawParams.dotSpeed)
+                dx = dotSpeed*sin(directions*pi/180)/frameRate;
+                dy = -dotSpeed*cos(directions*pi/180)/frameRate;
                 % Create all the dots in random starting positions
                 x = (rand(1,nDots)-.5)*...
                     drawParams.apertureSizeWidth + drawParams.centerX;
@@ -335,14 +350,14 @@ while true
             (x-drawParams.centerX).^2/(drawParams.apertureSizeWidth/2)^2 + ...
             (y-drawParams.centerY).^2/(drawParams.apertureSizeHeight/2)^2 < 1;
 
-        %convert from degrees to screen pixels
-        pixpos.x = angle2pix(drawParams.screenWidthCm, winsRect(3), ...
-                             drawParams.screenDistCm, x) + winsRect(3)/2;
-        pixpos.y = angle2pix(drawParams.screenWidthCm, winsRect(3), ...
-                             drawParams.screenDistCm, y) + winsRect(4)/2;
+        % Offset by screen pixels
+        pixpos.x = x + winsRect(3)/2;
+        pixpos.y = y + winsRect(4)/2;
         % disp('Pre-drawing took: ' + string(toc));
         % tic;
         xGoodDotsPix = pixpos.x(goodDots);
+%         min(xGoodDotsPix)
+%         max(xGoodDotsPix)
         yGoodDotsPix = pixpos.y(goodDots);
         for curWinPtr = winsPtrs
             Screen('DrawDots', curWinPtr, ...
