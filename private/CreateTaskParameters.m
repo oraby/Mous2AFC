@@ -119,8 +119,6 @@ TaskParameters.GUIMeta.OmegaTable.String = 'Omega probabilities';
 TaskParameters.GUIMeta.OmegaTable.ColumnLabel = {'Stim %','RDK Coh', 'P(a)'};
 TaskParameters.GUIMeta.OmegaTable.ColumnEditable = [true, false, true];
 TaskParameters.GUIMeta.OmegaTable.Callback = @UpdateOmegaTableCb;
-TaskParameters.GUI.TableNote = 'Edit Stim % to update RDK';
-TaskParameters.GUIMeta.TableNote.Style = 'text';
 % Sampling
 TaskParameters.GUI.StimulusTime = 0.3;
 TaskParameters.GUI.RewardAfterMinSampling = false;
