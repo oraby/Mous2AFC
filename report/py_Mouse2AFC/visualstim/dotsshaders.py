@@ -192,10 +192,8 @@ def dotsSizeRange(win):
   _float = (GL.GLfloat*2)()
   GL.glGetFloatv(GL.GL_ALIASED_POINT_SIZE_RANGE, _float)
   min_aliased_point_size, max_aliased_point_size = _float[0], _float[1]
-  print("min/max aliased_point_size:", list(_float))
-
+  # print("min/max aliased_point_size:", list(_float))
   GL.glGetFloatv(GL.GL_POINT_SIZE_RANGE, _float)
   min_smooth_point_Size, max_smooth_point_size = _float[0], _float[1]
-
   return (min_smooth_point_Size, max_smooth_point_size, min_aliased_point_size,
           max_aliased_point_size)

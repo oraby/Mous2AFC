@@ -1,7 +1,7 @@
 function [DeliverStimulus, ContDeliverStimulus, StopStimulus, GUI,...
     drawParams] = HandleStateMatrixStim(GUI, CurTrial, LeftPort, LeftPWM,...
                                         RightPort, RightPWM, soundParams,...
-                                        dotsMapped_file)
+                                        dotsMapped_file, SessionPath)
 %TODO: Create drawParams as persistent object
 drawParams = struct;
 %The rest of this function continue down below
@@ -96,6 +96,7 @@ elseif ExpType == ExperimentType.RandomDots
     GUI.circleArea = (pi*((GUI.apertureSizeWidth/2).^2));
     GUI.nDots = round(GUI.circleArea * GUI.drawRatio);
     drawParams.stimType = DrawStimType.RDK;
+    drawParams.circleRDK = GUI.circleRDK;
     drawParams.centerX = GUI.centerX;
     drawParams.centerY = GUI.centerY;
     drawParams.apertureSizeWidth = GUI.apertureSizeWidth;
@@ -110,7 +111,21 @@ elseif ExpType == ExperimentType.RandomDots
     drawParams.screenWidthCm = GUI.screenWidthCm;
     drawParams.screenDistCm = GUI.screenDistCm;
     drawParams.dotSizeInDegs = GUI.dotSizeInDegs;
-
+    if ~isnan(CurTrial.DotsPulseCoherence)
+        drawParams.pulseCohr = CurTrial.DotsPulseCoherence;
+        drawParams.pulseOffset = CurTrial.DotsPulseStart;
+        drawParams.pulseDur = CurTrial.DotsPulseDur;
+    else
+        drawParams.pulseCohr = 0;
+        drawParams.pulseOffset = 999;
+        drawParams.pulseDur = 0;
+    end
+    % The next two fields helps the renderer to know when and where to dump its
+    % data when a new animal is detected.
+    % Leave TrialNumber as PascalCase to use it later to merge dataframes
+    % on with TrialNumber in Data.Custom.Trials.
+    drawParams.TrialNumber = CurTrial.TrialNumber;
+    drawParams.sessionPath = SessionPath;
     % Start from the 5th byte
     wait_mmap_file = createMMFile(tempdir, 'mmap_matlab_dot_read.dat', 4);
     serializeAndWrite(dotsMapped_file, 5, drawParams, wait_mmap_file, 1);

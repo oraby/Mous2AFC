@@ -1,11 +1,13 @@
 import numpy as np
+from pyglet import clock
 from psychopy import core
 from psychopy.tools.monitorunittools import deg2pix
 from psychopy import visual
 from common.definitions import DrawStimType
 from common.loadSerializedData import loadSerializedData
-from .checkclose import checkClose
+# from .checkclose import checkClose
 
+REST_AFTER_SECS = 5*60
 
 class Gabor:
   def __init__(self, wins_ptrs, win_size, photo_diode_size, photo_diode_pos,
@@ -36,7 +38,7 @@ class Gabor:
 
   def loop(self, cur_cmd, mm_file):
     while True:
-      checkClose(self._wins_ptrs)
+      # checkClose(self._wins_ptrs)
       # Either this is the first run or the next iteration, in both way, clear
       # the screen to prepare for the next run.
       for win_ptr, fill_rect in zip(self._wins_ptrs, self._wait_fill_rects):
@@ -56,7 +58,13 @@ class Gabor:
         return cur_cmd, drawParams
 
       gratings, shifts_per_frame = self._load(drawParams)
-      cur_cmd = self._renderLoop(mm_file, gratings, shifts_per_frame)
+      cur_cmd = self._renderLoop(mm_file, cur_cmd, gratings, shifts_per_frame)
+      if cur_cmd == 1:
+        print("Resting due to inactivity...")
+        while cur_cmd == 1:
+          [win_ptr.winHandle.dispatch_events() for win_ptr in self._wins_ptrs]
+          core.wait(0.3, hogCPUperiod=0)
+          cur_cmd = np.frombuffer(mm_file[:4], dtype=np.uint32)[0]
     # We can only break if we want exit
     print("User asked to exit")
     return -1, None
@@ -92,20 +100,24 @@ class Gabor:
     shifts_per_frame = drawParams.cyclesPerSecondDrift/self._frame_rate
     return np.array(gratings), shifts_per_frame
 
-  def _renderLoop(self, mm_file, gratings, shifts_per_frame):
+  def _renderLoop(self, mm_file, cur_cmd, gratings, shifts_per_frame):
     ifi = 1/self._frame_rate
-    cur_cmd = 2 # This function should have not been called if cur_cmd is not 2
     next_frame_time = 0
-
-    cur_cmd = np.frombuffer(mm_file[:4], dtype=np.uint32)[0]
-    # TODO: Send trial number as well to check if we missed a whole trial and
-    # accordingly if we should load a new config
-    while cur_cmd == 1:
-      core.wait(0.005) # Wait for the run command
-      cur_cmd = np.frombuffer(mm_file[:4], dtype=np.uint32)[0]
-      checkClose(self._wins_ptrs)
-
-    while cur_cmd == 2:
+    # cur_cmd = 2 # This function should have not been called if cur_cmd is not 2
+    # next_frame_time = 0
+    # cur_cmd = np.frombuffer(mm_file[:4], dtype=np.uint32)[0]
+    # # TODO: Send trial number as well to check if we missed a whole trial and
+    # # accordingly if we should load a new config
+    # while cur_cmd == 1:
+    #   core.wait(0.005) # Wait for the run command
+    #   cur_cmd = np.frombuffer(mm_file[:4], dtype=np.uint32)[0]
+    #   # checkClose(self._wins_ptrs)
+    wins_handles = [win_ptr.winHandle for win_ptr in self._wins_ptrs]
+    num_frames = 0
+    render_start_time = 0
+    loop_start_time = clock.tick()
+    vbl = loop_start_time
+    while True:
       [stim_rect.draw() for stim_rect in self._stim_fill_rects]
       # Drawy one grating per window
       for grating in gratings:
@@ -115,16 +127,45 @@ class Gabor:
       # Draw the corner box for the photo diode to detect
       [box.draw() for box in self._photo_diode_boxes]
       # Now we can render
-      sleep_for = next_frame_time - core.monotonicClock.getTime()
-      if sleep_for > 0:
-        core.wait(sleep_for)
-      vbl = self._wins_ptrs[0].flip()
+      # sleep_for = next_frame_time - core.monotonicClock.getTime()
+      # if sleep_for > 0:
+      #   core.wait(sleep_for)
+      if cur_cmd != 2: # To keep the flip() in cache, we flip() anyhow but we
+                       # might clear first if we shouldn't render yet
+        for handle in wins_handles:
+          handle.switch_to()
+          handle.clear()
+        num_frames -= 1
+      # https://stackoverflow.com/a/56761157/11996983
+      for handle in wins_handles:
+        handle.switch_to()
+        handle.flip()
+        handle.clear()
+        # poll the operating system event queue
+        handle.dispatch_events()
+      # vbl = self._wins_ptrs[0].flip()
+      # for cur_win_ptr in self._wins_ptrs[1:]:
+      #   cur_win_ptr.waitBlanking = False
+      #   cur_win_ptr.flip()
+      #   cur_win_ptr.waitBlanking = True
+      vbl += clock.tick()
       next_frame_time = vbl + (0.5*ifi)
-      for cur_win_ptr in self._wins_ptrs[1:]:
-        cur_win_ptr.waitBlanking = False
-        cur_win_ptr.flip()
-        cur_win_ptr.waitBlanking = True
+      num_frames += 1
       # Read the new command and prepare to quit if we shouldn't keep on
       # rendering
-      cur_cmd = np.frombuffer(mm_file[:4], dtype=np.uint32)[0]
-    return cur_cmd
+      new_cmd = np.frombuffer(mm_file[:4], dtype=np.uint32)[0]
+      if cur_cmd == 1 and new_cmd == 2:
+        # print("Setting start time")
+        render_start_time = core.monotonicClock.getTime()
+      elif new_cmd == 0 or vbl - loop_start_time > REST_AFTER_SECS:
+        break
+      cur_cmd = new_cmd
+    # print("New cur cmd:", new_cmd)
+    if render_start_time:
+      time_taken = core.monotonicClock.getTime() - render_start_time
+      print(f"num_frames: {num_frames} - over: {time_taken}s - Frame rate: "
+            f"{num_frames/time_taken} FPS")
+      # print(f"Slept for: {wait_time}s uin {times_slept}/{num_frames} frames -"
+      #       f" time: {wait_time/num_frames} Per frame")
+      self._frame_rate = num_frames/time_taken
+    return new_cmd

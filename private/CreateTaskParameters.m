@@ -216,6 +216,15 @@ TaskParameters.GUI.dotSpeedDegsPerSec = 25; %degrees/second
 TaskParameters.GUI.dotLifetimeSecs = 1;  %lifetime of each dot sec
 TaskParameters.GUIPanels.RandomDots = {'drawRatio','circleArea','nDots',...
     'dotSizeInDegs','dotSpeedDegsPerSec','dotLifetimeSecs'};
+% Random dots pulse
+TaskParameters.GUI.dotsPulseCohr = 20;
+TaskParameters.GUI.dotsPulseProb = 0;
+TaskParameters.GUI.dotsPulseMinDur = 0.3;
+TaskParameters.GUI.dotsPulseOffset_Neg1Rnd = -1;
+TaskParameters.GUI.LastPulse = '';
+TaskParameters.GUIMeta.LastPulse.Style = 'text';
+TaskParameters.GUIPanels.RandomDotsPulse = {'dotsPulseCohr', 'dotsPulseProb',...
+    'dotsPulseMinDur', 'dotsPulseOffset_Neg1Rnd', 'LastPulse'};
 % Grating orientation specific
 TaskParameters.GUI.gaborSizeFactor = 1.2;
 TaskParameters.GUI.phase = 0; % Phase of the wave, goes between 0 to 360
@@ -291,7 +300,7 @@ TaskParameters.GUI = orderfields(TaskParameters.GUI);
 TaskParameters.GUITabs.General = {'CurrentTrial','Experiment','General','FeedbackDelay','StimDelay'};
 TaskParameters.GUITabs.Sampling = {'CurrentTrial','LightIntensity','Sampling','StimulusSelection'};
 TaskParameters.GUITabs.Blocks = {'CurrentTrial','Block2'};
-TaskParameters.GUITabs.Visual = {'CurrentTrial','Grating','RandomDots','VisualGeneral'};
+TaskParameters.GUITabs.Visual = {'CurrentTrial','Grating','RandomDots','VisualGeneral','RandomDotsPulse'};
 TaskParameters.GUITabs.Auditory = {'CurrentTrial','PoissonClicks','SoundIntensity',};
 TaskParameters.GUITabs.Triggers = {'Optogenetics','AirControl'};
 TaskParameters.GUITabs.Plots = {'ShowPlots','Vevaiometric'};
