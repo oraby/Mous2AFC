@@ -402,21 +402,6 @@ end
 TaskParameters.Figures.ParameterGUI.Position = BpodSystem.ProtocolFigures.ParameterGUI.Position;
 CurTimer.customFinializeUpdate = toc;
 
-if iTrial == 3
-       disp('Disabled attempt to save data to PHP server'); 
-end
-%send bpod status to server
-%try
-    %script = 'receivebpodstatus.php';
-    %create a common "outcome" vector
-    %outcome = BpodSystem.Data.Custom.Trials(1:iTrial).ChoiceCorrect; %1=correct, 0=wrong
-    %outcome(BpodSystem.Data.Custom.Trials(1:iTrial).EarlyWithdrawal)=2; %early withdrawal=2
-    %outcome(BpodSystem.Data.Custom.Trials(1:iTrial).FixBroke)=3;%jackpot=3
-    %SendTrialStatusToServer(script,BpodSystem.Data.Custom.Rig,outcome,BpodSystem.Data.Custom.Subject,BpodSystem.CurrentProtocolName);
-%catch
-%end
-%CurTimer.customSendPhp = toc;
-
 % The CurTrial assignment here is not necessary as it was already assigned
 % above, but we do it just as precaution against future changes.
 BpodSystem.Data.Custom.Trials(iTrial) = CurTrial;
