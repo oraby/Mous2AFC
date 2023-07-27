@@ -192,6 +192,8 @@ TaskParameters.GUIMeta.VisualStimAnglePortRight.String = VisualStimAngle.String;
 TaskParameters.GUI.VisualStimAnglePortLeft = VisualStimAngle.Degrees270;
 TaskParameters.GUIMeta.VisualStimAnglePortLeft.Style = 'popupmenu';
 TaskParameters.GUIMeta.VisualStimAnglePortLeft.String = VisualStimAngle.String;
+TaskParameters.GUI.circleRDK = 0;
+TaskParameters.GUIMeta.circleRDK.Style = 'checkbox';
 TaskParameters.GUI.screenDistCm = 30;
 TaskParameters.GUI.screenWidthCm = 20;
 TaskParameters.GUI.apertureSizeWidth = 36; % size of circular aperture [w,h] in degrees
@@ -199,7 +201,7 @@ TaskParameters.GUI.apertureSizeHeight = 36;
 TaskParameters.GUI.centerX = 0; % center of render of stimulus (x,y)
 TaskParameters.GUI.centerY = 0;
 TaskParameters.GUIPanels.VisualGeneral = {'VisualStimAnglePortRight',...
-    'VisualStimAnglePortLeft','screenDistCm','screenWidthCm',...
+    'VisualStimAnglePortLeft','circleRDK','screenDistCm','screenWidthCm',...
     'apertureSizeWidth','apertureSizeHeight','centerX','centerY'};
 % Random dots options
 % Use 20% of the screen size

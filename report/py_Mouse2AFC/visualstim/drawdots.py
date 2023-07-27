@@ -8,7 +8,6 @@ from common.loadSerializedData import loadSerializedData
 from . import dotsshaders as ds
 from .checkclose import checkClose
 
-CIRCLE_RDK = False # TODO: Ready from Incoming params
 class DrawDots:
   def __init__(self, wins_ptrs, win_size, photo_diode_size, photo_diode_pos,
                frame_rate, monitor):
@@ -95,16 +94,14 @@ class DrawDots:
     return -1, None
 
   def _load(self, drawParams):
-    if CIRCLE_RDK:
-      field_area = np.pi*((drawParams.apertureSizeWidth/2)*
-                          (drawParams.apertureSizeHeight/2))
+    if drawParams.circleRDK:
+      # Ellipse area: πab where a and b are the radii of each side
+      field_area_pix = (drawParams.apertureSizeWidth*self._win_size[0]/2)*\
+                       (drawParams.apertureSizeHeight*self._win_size[1]/2)*np.pi
     else:
-      field_area = drawParams.apertureSizeWidth * \
-                   drawParams.apertureSizeHeight
-    # Convert area to pixels, but seqare it to get the whole area. We square
-    # only the width as deg2pix() uses the width only.
-    field_area_pix = (drawParams.apertureSizeWidth*self._win_size[0]) * \
-                     (drawParams.apertureSizeHeight*self._win_size[1])
+      # Rectangle area
+      field_area_pix = (drawParams.apertureSizeWidth*self._win_size[0])*\
+                       (drawParams.apertureSizeHeight*self._win_size[1])
     # Calculate the size of a dot in pixel
     self._monitor.setWidth(drawParams.screenWidthCm)
     self._monitor.setDistance(drawParams.screenDistCm)
@@ -190,13 +187,13 @@ class DrawDots:
       self._handleShaders(dot_type)
     # GL.glGetFloatv(GL.GL_ALIASED_POINT_SIZE_RANGE, (GLfloat*) &pointsizerange);
     # Need this when drawing the dots later
-    return (dot_size_pix, dots_life, lifetime, drawParams.apertureSizeWidth,
-            drawParams.apertureSizeHeight, drawParams.centerX,
-            drawParams.centerY, (l, r, b, t), dot_type)
+    return (dot_size_pix, dots_life, lifetime, drawParams.circleRDK,
+            drawParams.apertureSizeWidth, drawParams.apertureSizeHeight,
+            drawParams.centerX, drawParams.centerY, (l, r, b, t), dot_type)
 
-  def _renderLoop(self, mm_file, dot_size_pix, dots_life, lifetime,
-                  aperture_size_width, aperture_size_height, center_x, center_y,
-                  l_r_b_t, dot_type):
+  def _renderLoop(self, mm_file, cur_cmd, dot_size_pix, dots_life, lifetime,
+                  circle_rdk, aperture_size_width, aperture_size_height,
+                  center_x, center_y, l_r_b_t, dot_type):
     l, r, b, t = l_r_b_t
     ifi = 1/self._frame_rate
     cur_cmd = 2 # This function should have not been called if cur_cmd is not 2
@@ -211,15 +208,12 @@ class DrawDots:
       checkClose(self._wins_ptrs)
 
     while cur_cmd == 2:
-      if CIRCLE_RDK:
-        good_dots = \
-          (self._dots_arr[:,0]-center_x)**2/(aperture_size_width/2)**2 + \
-          (self._dots_arr[:,1]-center_y)**2/(aperture_size_height/2)**2 < 1
-        #convert from degrees to screen pixels
-        pixpos = (self._dots_arr-0.5) * self._win_size + self._win_size/2
-        good_dots_pix = pixpos[good_dots]
-      else:
-        good_dots_pix = (self._dots_arr-0.5) * self._win_size + self._win_size/2
+      good_dots = self._dots_arr
+      if circle_rdk:
+        enbld_dots = (good_dots[:,0]-center_x)**2/(aperture_size_width/2)**2 + \
+                    (good_dots[:,1]-center_y)**2/(aperture_size_height/2)**2 < 1
+        good_dots = good_dots[enbld_dots]
+      good_dots_pix = (good_dots-0.5) * self._win_size + self._win_size/2
 
       #print("Good dots:", good_dots_pix)
       for idx in np.arange(len(self._wins_ptrs)):
