@@ -294,6 +294,7 @@ if isnan(PerfR) % Same as above
     PerfR = 1 - nLeftChoiceCorrect/denominator;
 end
 GUI.CalcLeftBias = (PerfL-PerfR)/2 + 0.5;
+CurTimer.customCalcBias = toc; tic;
 
 allTrialsChoices = [BpodSystem.Data.Custom.Trials(1:iTrial).ChoiceCorrect];
 choiceMadeTrials = allTrialsChoices(~isnan(allTrialsChoices));
