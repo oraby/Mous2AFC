@@ -34,16 +34,13 @@ TaskParameters.GUIMeta.PCTimeout.Style = 'checkbox';
 TaskParameters.GUI.WaitFinalPokeOutSec = 1;
 TaskParameters.GUI.StartEasyTrials = 10;
 TaskParameters.GUI.Percent50Fifty = 0;
-TaskParameters.GUI.PercentCatch = 0;
-TaskParameters.GUI.CatchError = false;
-TaskParameters.GUIMeta.CatchError.Style = 'checkbox';
 TaskParameters.GUI.Ports_LMRAudLRAir = 123568;
 TaskParameters.GUI.Wire1VideoTrigger = false;
 TaskParameters.GUIMeta.Wire1VideoTrigger.Style = 'checkbox';
 TaskParameters.GUIPanels.General = {'ITI','RewardAmount','ChoiceDeadLine','TimeOutIncorrectChoice',...
     'TimeOutBrokeFixation','TimeOutEarlyWithdrawal','TimeOutMissedChoice','TimeOutSkippedFeedback',...
     'HabituateIgnoreIncorrect','PlayNoiseforError','PCTimeout','WaitFinalPokeOutSec','StartEasyTrials',...
-    'Percent50Fifty','PercentCatch','CatchError','Ports_LMRAudLRAir','Wire1VideoTrigger'};
+    'Percent50Fifty','Ports_LMRAudLRAir','Wire1VideoTrigger'};
 %% StimDelay
 TaskParameters.GUI.StimDelayAutoincrement = 0;
 TaskParameters.GUIMeta.StimDelayAutoincrement.Style = 'checkbox';
@@ -120,6 +117,7 @@ TaskParameters.GUIMeta.OmegaTable.Style = 'table';
 TaskParameters.GUIMeta.OmegaTable.String = 'Omega probabilities';
 TaskParameters.GUIMeta.OmegaTable.ColumnLabel = {'Stim %','RDK Coh', 'P(a)'};
 TaskParameters.GUIMeta.OmegaTable.ColumnEditable = [true, false, true];
+TaskParameters.GUIMeta.OmegaTable.Callback = @UpdateOmegaTableCb;
 TaskParameters.GUI.TableNote = 'Edit Stim % to update RDK';
 TaskParameters.GUIMeta.TableNote.Style = 'text';
 % Sampling
@@ -164,7 +162,8 @@ TaskParameters.GUIMeta.BeepAfterMinSampling.Style = 'checkbox';
 TaskParameters.GUIPanels.PoissonClicks = {'SumRates'};
 TaskParameters.GUIPanels.LightIntensity = {'LeftPokeAttenPrcnt','CenterPokeAttenPrcnt','RightPokeAttenPrcnt','StimAfterPokeOut', 'BeepAfterMinSampling'};
 TaskParameters.GUIPanels.SoundIntensity = {'UsePCSpeakers','AudStimType','LeftSpeakerAttenPrcnt','RightSpeakerAttenPrcnt'};
-TaskParameters.GUIPanels.StimulusSelection = {'OmegaTable','TableNote','BetaDistAlphaNBeta','StimulusSelectionCriteria','LeftBias','LeftBiasVal','CorrectBias'};
+TaskParameters.GUIPanels.StimulusSelection = {'OmegaTable','TableNote','BetaDistAlphaNBeta',...
+    'StimulusSelectionCriteria','LeftBias','LeftBiasVal','CorrectBias'};
 TaskParameters.GUIPanels.Sampling = {'RewardAfterMinSampling','CenterPortRewAmount','MinSampleMin',...
                                      'MinSampleMax','MinSampleType','MinSampleIncr','MinSampleDecr','MinSampleNumInterval','MinSampleRandProb',...
                                      'StimulusTime','PortLEDtoCueReward','PercentForcedLEDTrial'};
@@ -296,12 +295,32 @@ TaskParameters.GUIMeta.OptoBrainRegion.String = BrainRegion.String;
 TaskParameters.GUIPanels.Optogenetics = {'OptoProb', 'OptoOr2P',...
    'OptoStartState1', 'OptoStartDelay','OptoMaxTime',...
    'OptoEndState1','OptoEndState2','OptoBrainRegion','IsOptoTrial'};
+% Catch Trials
+TaskParameters.GUI.CatchTable.Omega = [100:-5:55]';
+TaskParameters.GUIMeta.CatchTable.Omega.Style = 'text';
+TaskParameters.GUI.CatchTable.EveryMin = zeros(numel(TaskParameters.GUI.CatchTable.Omega),1);
+TaskParameters.GUI.CatchTable.EveryMax = zeros(numel(TaskParameters.GUI.CatchTable.Omega),1);
+TaskParameters.GUIMeta.CatchTable.Style = 'table';
+TaskParameters.GUIMeta.CatchTable.String = 'Catch Distribution';
+TaskParameters.GUIMeta.CatchTable.ColumnLabel = {'Omega','EveryMin', 'EveryMax'};
+TaskParameters.GUIMeta.CatchTable.ColumnEditable = [false, true, true];
+TaskParameters.GUI.CatchError = false;
+TaskParameters.GUIMeta.CatchError.Style = 'checkbox';
+TaskParameters.GUI.CatchCanComeAfterErr = 0;
+TaskParameters.GUIMeta.CatchCanComeAfterErr.Style = 'checkbox';
+TaskParameters.GUI.CatchSepLeftRight = 0;
+TaskParameters.GUIMeta.CatchSepLeftRight .Style = 'checkbox';
+TaskParameters.GUI.CatchCorrectOnlyCounts = 0;
+TaskParameters.GUIMeta.CatchCorrectOnlyCounts.Style = 'checkbox';
+TaskParameters.GUIPanels.CatchDist = {'CatchTable','CatchError',...
+  'CatchCanComeAfterErr','CatchSepLeftRight','CatchCorrectOnlyCounts'};
+
 %%
 TaskParameters.GUI = orderfields(TaskParameters.GUI);
 %% Tabs
 TaskParameters.GUITabs.General = {'CurrentTrial','Experiment','General','FeedbackDelay','StimDelay'};
 TaskParameters.GUITabs.Sampling = {'CurrentTrial','LightIntensity','Sampling','StimulusSelection'};
-TaskParameters.GUITabs.Blocks = {'CurrentTrial','Block2'};
+TaskParameters.GUITabs.Blocks = {'CurrentTrial','Block2','CatchDist'};
 TaskParameters.GUITabs.Visual = {'CurrentTrial','Grating','RandomDots','VisualGeneral','RandomDotsPulse'};
 TaskParameters.GUITabs.Auditory = {'CurrentTrial','PoissonClicks','SoundIntensity',};
 TaskParameters.GUITabs.Triggers = {'Optogenetics','AirControl'};

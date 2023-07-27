@@ -1,6 +1,6 @@
 function [NextTrial, GUI, CurTimer] = GenNextTrial(NextTrial, NextTrialIdx,...
-            GUI, PrimaryExpType, SecExpType, CurTimer, LastSuccessCatchTial,...
-            CatchCount, IsLastTrialRewarded, NextTrialBlockNum)
+            GUI, PrimaryExpType, SecExpType, CurTimer, NextTrialBlockNum)
+NextTrial.TrialNumber = NextTrialIdx;
 % Tracks the amount of water the animal received up tp this point
 % TODO: Check if RewardReceivedTotal is needed and calculate it using
 % CalcRewObtained() function.
@@ -40,33 +40,6 @@ if NextTrialIdx < GUI.StartEasyTrials
 end
 NextTrial.OptoEnabled = OptoEnabled;
 GUI.IsOptoTrial = iff(OptoEnabled, 'true', 'false');
-
-% determine if catch trial
-if NextTrialIdx < GUI.StartEasyTrials || GUI.PercentCatch == 0
-    NextTrial.CatchTrial = false;
-else
-    every_n_trials = round(1/GUI.PercentCatch);
-    limit = round(every_n_trials*0.2);
-    lower_limit = every_n_trials - limit;
-    upper_limit = every_n_trials + limit;
-    if ~IsLastTrialRewarded || NextTrialIdx < LastSuccessCatchTial + lower_limit
-        NextTrial.CatchTrial = false;
-    elseif NextTrialIdx < LastSuccessCatchTial + upper_limit
-        %TODO: If OmegaProb changed since last time, then redo it
-        non_zero_prob = GUI.OmegaTable.Omega(GUI.OmegaTable.OmegaProb > 0);
-        non_zero_prob = [1-(non_zero_prob'/100), flip(non_zero_prob'/100)];
-        active_stim_idxs = GetCatchStimIdx(non_zero_prob);
-        cur_stim_idx = GetCatchStimIdx(NextTrial.StimulusOmega);
-        min_catch_counts = min(CatchCount(active_stim_idxs));
-        min_catch_idxs = intersect(active_stim_idxs,...
-                                   find(floor(CatchCount) == min_catch_counts));
-        NextTrial.CatchTrial = any(min_catch_idxs == cur_stim_idx);
-    else
-        NextTrial.CatchTrial = true;
-    end
-end
-% Create as char vector rather than string so that GUI sync doesn't complain
-GUI.IsCatch = iff(NextTrial.CatchTrial, 'true', 'false');
 
 % Determine if Forced LED trial:
 if GUI.PortLEDtoCueReward

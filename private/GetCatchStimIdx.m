@@ -1,4 +1,5 @@
-function idx = GetCatchStimIdx (StimulusOmega)
-    % StimulusOmega is between 0 and 1, we break it down to bins of 20
-    idx = round(StimulusOmega * 20) + 1;
+function idx = GetCatchStimIdx(DV)
+    % We multiply by 10 as Omegatable has 10 entries and try to map the DV to
+    % the correct bucket. Finally, add one to start at Matlab's 1-based idxs.
+    idx = 1 + floor((1-abs(DV))*10);
 end

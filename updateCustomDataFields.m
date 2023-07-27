@@ -90,20 +90,6 @@ if any(strcmp(str(MatrixState.WaitForPunishStart),statesThisTrial)) || any(strcm
     end
 elseif any(strcmp(str(MatrixState.WaitForRewardStart),statesThisTrial))  % CorrectChoice
     CurTrial.ChoiceCorrect = 1;
-    if CurTrial.CatchTrial
-        catch_stim_idx = GetCatchStimIdx(CurTrial.StimulusOmega);
-        % Lookup the stimulus probability and increase by its 1/frequency.
-        stim_val = CurTrial.StimulusOmega * 100;
-        if stim_val < 50
-            stim_val = 100 - stim_val;
-        end
-        stim_prob = GUI.OmegaTable.OmegaProb(GUI.OmegaTable.Omega == stim_val);
-        sum_all_prob = sum(GUI.OmegaTable.OmegaProb);
-        stim_prob = (1+sum_all_prob-stim_prob)/sum_all_prob;
-        BpodSystem.Data.Custom.CatchCount(catch_stim_idx) = ...
-             BpodSystem.Data.Custom.CatchCount(catch_stim_idx) + stim_prob;
-        BpodSystem.Data.Custom.LastSuccessCatchTial = iTrial;
-    end
     if any(strcmp(str(MatrixState.WaitForReward),statesThisTrial))  % Feedback waiting time
         CurTrial.FeedbackTime = eventsStatesThisTrial.WaitForReward(end,end) - eventsStatesThisTrial.WaitForRewardStart(1,1);
         if CurTrial.LeftRewarded == 1 % Correct choice = left
@@ -387,12 +373,18 @@ else
     CurTimer.customGenNewTrials = 0;
 end%if trial > - 5
 
+% Check if we shouldn't increment correct trials
 NextTrial = BpodSystem.Data.Custom.Trials(iTrial+1);
 [NextTrial, GUI, CurTimer] = GenNextTrial(NextTrial, iTrial+1, GUI,...
-                                NewExpType, NewSecExpType, CurTimer,...
-                                BpodSystem.Data.Custom.LastSuccessCatchTial,...
-                                BpodSystem.Data.Custom.CatchCount,...
-                                CurTrial.Rewarded, NextTrialBlockNum);
+                                          NewExpType, NewSecExpType, CurTimer,...
+                                          NextTrialBlockNum);
+% TODO: Create separate timer for handling HandleCatchTrials()
+[NextTrial.CatchTrial, BpodSystem.Data.Custom.CatchOmegaTrack] =...
+    HandleCatchTrials(CurTrial, NextTrial, GUI,...
+                      BpodSystem.Data.Custom.CatchOmegaTrack);
+% Create as char vector rather than string so that GUI sync doesn't complain
+GUI.IsCatch = iff(NextTrial.CatchTrial, 'true', 'false');
+CurTimer.customFinializeUpdate = toc;
 tic;
 % send auditory stimuli to PulsePal for next trial
 if GUI.ExperimentType == ExperimentType.Auditory && ~BpodSystem.EmulatorMode
