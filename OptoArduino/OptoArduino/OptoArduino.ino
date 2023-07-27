@@ -31,7 +31,9 @@ State cur_state;
 void setup() {
   cur_state = should_state = NOT_WORKING;
   Serial.begin(115200);
+  #ifdef DEBUG
   SerialUSB.begin(115200);
+  #endif
   pinMode(START_PIN, INPUT_PULLUP);
   pinMode(STOP_PIN, INPUT_PULLUP);
   pinMode(OUTPUT_PIN, OUTPUT);
