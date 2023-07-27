@@ -2,15 +2,15 @@ function [TaskParameters, Quit] = InitTaskParameters(TaskParameters,...
                                                   SubjectName_, SettingsFileName)
 GUICurVer = 41;
 Quit = false;
+DefaultTaskParameter = CreateTaskParameters(GUICurVer);
 if isempty(fieldnames(TaskParameters))
-    TaskParameters = CreateTaskParameters(GUICurVer);
+    TaskParameters = DefaultTaskParameter;
 elseif ~isfield(TaskParameters.GUI, 'GUIVer')
     TaskParameters.GUI.GUIVer = 0;
 end
 if TaskParameters.GUI.GUIVer ~= GUICurVer
     Overwrite = true;
     WriteOnlyNew = ~Overwrite;
-    DefaultTaskParameter = CreateTaskParameters(GUICurVer);
     if isfield(TaskParameters.GUI,'OmegaTable')
         TaskParameters.GUI.OmegaTable = ...
             UpdateStructVer(TaskParameters.GUI.OmegaTable,...
@@ -23,6 +23,17 @@ if TaskParameters.GUI.GUIVer ~= GUICurVer
                                          DefaultTaskParameter.GUI,WriteOnlyNew);
     TaskParameters.GUIMeta = UpdateStructVer(TaskParameters.GUIMeta,...
                                          DefaultTaskParameter.GUIMeta,Overwrite);
+    % Handle cases where Checkboxes where converted to popupmenu, but
+    % popupmenu cannot accept a value of zero as an index.
+    meta_fields_names = fieldnames(TaskParameters.GUIMeta);
+    for n=1:length(meta_fields_names)
+        field_name = meta_fields_names{n};
+        if isfield(TaskParameters.GUIMeta.(field_name),'Style') &&...
+           strcmp(TaskParameters.GUIMeta.(field_name).Style, 'popupmenu') &&...
+           TaskParameters.GUI.(field_name) == 0
+            TaskParameters.GUI.(field_name) = DefaultTaskParameter.GUI.(field_name);
+        end
+    end
     TaskParameters.GUIPanels = UpdateStructVer(TaskParameters.GUIPanels,...
                                          DefaultTaskParameter.GUIPanels,Overwrite);
     TaskParameters.Figures = UpdateStructVer(TaskParameters.Figures,...
@@ -54,6 +65,16 @@ elseif ~strcmp(TaskParameters.GUI.ComputerName, computerName)
         RunProtocol('Stop');
         Quit = true;
         return;
+    end
+end
+% Re-assign callbacks in case they got lost (maybe between Matlab
+% versions?)
+meta_fields_names = fieldnames(TaskParameters.GUIMeta);
+for n=1:length(meta_fields_names)
+    field_name = meta_fields_names{n};
+    if isfield(TaskParameters.GUIMeta.(field_name),'Callback')
+        TaskParameters.GUIMeta.(field_name).Callback = ...
+                              DefaultTaskParameter.GUIMeta.(field_name).Callback;
     end
 end
 % Set to nan so user might remember to set it
