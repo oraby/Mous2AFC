@@ -8,12 +8,12 @@
 class Choice:
   Correct = "lime"
   Incorrect = "red"
-  All = "blue"
+  All = "black"
 
 class Difficulty:
-  Easy = "#8a9400"
-  Med = "#009994"
-  Hard = "#680094"
+  Easy = "navy" #"#8a9400"
+  Med =  "blue"#009994"
+  Hard = "#0096ff" #"#680094"
 
 class Duration:
   Short = "#ff8903"
