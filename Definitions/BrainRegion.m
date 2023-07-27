@@ -18,6 +18,12 @@ classdef BrainRegion
         RSP_L = 16;
         RSP_R = 17;
         RSP_Bi = 18;
+        S1_L = 19;
+        S1_R = 20;
+        S1_Bi = 21;
+        M1_L = 22;
+        M1_R = 23;
+        M1_Bi = 24;
     end
     methods(Static)
         function string = String()
