@@ -128,7 +128,7 @@ end
 if any(strcmp(str(MatrixState.timeOut_SkippedFeedback),statesThisTrial))
     CurTrial.Feedback = false;
 end
-if any(strcmp(str(MatrixState.Reward),statesThisTrial))
+if any(strcmp(str(MatrixState.Reward),statesThisTrial)) && ~CurTrial.CatchTrial
     CurTrial.Rewarded = true;
     CurTrial.RewardReceivedTotal = CurTrial.RewardReceivedTotal + GUI.RewardAmount;
 end
