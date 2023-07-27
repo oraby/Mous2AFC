@@ -38,7 +38,7 @@ class DrawDots:
 
     # Create a very big buffer to hold the dots
     self._dots_arr_buf = np.empty((50000, 2)) # 2: Prepare for x,y
-    print("_dots_arr_buf", self._dots_arr_buf.dtype)
+    # print("_dots_arr_buf", self._dots_arr_buf.dtype)
     # actually set the scale as appropriate
     # allows undoing of a previous scaling procedure
     # _dots array will be set later as a slice of self.dots_arr_buf. It's being
@@ -59,10 +59,11 @@ class DrawDots:
     # Assume all the windows are the same
     (min_smooth_point_Size, max_smooth_point_size, min_aliased_point_size,
       max_aliased_point_size) = ds.dotsSizeRange(self._wins_ptrs[0])
-    print(f"minSmoothPointSize: {min_smooth_point_Size} - "
-          f"max_smooth_point_size: {max_smooth_point_size}")
-    print(f"minAliasedPointSize: {min_aliased_point_size} - "
-          f"maxAliasedPointSize: {max_aliased_point_size}")
+    # max smoothed: 1, 189.875,  max aliased: 1, 2047
+    # print(f"minSmoothPointSize: {min_smooth_point_Size} - "
+    #       f"max_smooth_point_size: {max_smooth_point_size}")
+    # print(f"minAliasedPointSize: {min_aliased_point_size} - "
+    #       f"maxAliasedPointSize: {max_aliased_point_size}")
     self._max_smooth_point_size = max_smooth_point_size
 
   def loop(self, cur_cmd, mm_file):
