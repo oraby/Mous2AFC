@@ -4,13 +4,8 @@ classdef Const
        % protocol starts. These trials are built as easy trials.
        NUM_EASY_TRIALS = 2;
        % When a trial is a catch trial, the variable is the the time to
-       % allow the animal to poke (if the animal poked into the correct
-       % port) before signaling  a new trial
-       FEEDBACK_CATCH_CORRECT_SEC = 20;
-       % When a trial is a catch trial, the variable is the the time to
-       % allow the animal to poke (if the animal poked into the incorrect
-       % port) before signaling  a new trial
-       FEEDBACK_CATCH_INCORRECT_SEC = 20;
+       % allow the animal to poke
+       FEEDBACK_CATCH_MAX_SEC = 20;
        % When min. sampling time increment is enabled, the variable
        % defines how many last trials should be considered when calculating
        % the new sampling time.

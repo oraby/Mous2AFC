@@ -63,20 +63,9 @@ if any(strcmp(str(MatrixState.WaitForStimulus),statesThisTrial))
      (eventsStatesThisTrial.WaitForStimulus(end,2) - eventsStatesThisTrial.WaitForStimulus(end,1)) + ...
      (eventsStatesThisTrial.TriggerWaitForStimulus(end,2) - eventsStatesThisTrial.TriggerWaitForStimulus(end,1));
 end
-if any(strcmp(str(MatrixState.stimulus_delivery),statesThisTrial))
-    if GUI.RewardAfterMinSampling
-        CurTrial.ST = diff(eventsStatesThisTrial.stimulus_delivery);
-    else
-        % 'CenterPortRewardDelivery' state would exist even if no
-        % 'RewardAfterMinSampling' is active, in such case it means that
-        % min sampling is done and we are in the optional sampling stage.
-        if any(strcmp(str(MatrixState.CenterPortRewardDelivery),statesThisTrial)) && GUI.StimulusTime > GUI.MinSample
-            CurTrial.ST = eventsStatesThisTrial.CenterPortRewardDelivery(1,2) - eventsStatesThisTrial.stimulus_delivery(1,1);
-        else
-            % This covers early_withdrawal.
-            CurTrial.ST = diff(eventsStatesThisTrial.stimulus_delivery);
-        end
-    end
+if any(strcmp(str(MatrixState.StimulusTime),statesThisTrial))
+    CurTrial.ST = eventsStatesThisTrial.StimulusTime(end) - ...
+                  eventsStatesThisTrial.stimulus_delivery(1);
 end
 
 if any(strcmp(str(MatrixState.WaitForChoice),statesThisTrial)) && ~any(strcmp(str(MatrixState.timeOut_missed_choice),statesThisTrial))

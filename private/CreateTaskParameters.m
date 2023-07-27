@@ -31,6 +31,7 @@ TaskParameters.GUI.PlayNoiseforError = 0;
 TaskParameters.GUIMeta.PlayNoiseforError.Style = 'checkbox';
 TaskParameters.GUI.PCTimeout = true;
 TaskParameters.GUIMeta.PCTimeout.Style = 'checkbox';
+TaskParameters.GUI.WaitFinalPokeOutSec = 1;
 TaskParameters.GUI.StartEasyTrials = 10;
 TaskParameters.GUI.Percent50Fifty = 0;
 TaskParameters.GUI.PercentCatch = 0;
@@ -41,7 +42,7 @@ TaskParameters.GUI.Wire1VideoTrigger = false;
 TaskParameters.GUIMeta.Wire1VideoTrigger.Style = 'checkbox';
 TaskParameters.GUIPanels.General = {'ITI','RewardAmount','ChoiceDeadLine','TimeOutIncorrectChoice',...
     'TimeOutBrokeFixation','TimeOutEarlyWithdrawal','TimeOutMissedChoice','TimeOutSkippedFeedback',...
-    'HabituateIgnoreIncorrect','PlayNoiseforError','PCTimeout','StartEasyTrials',...
+    'HabituateIgnoreIncorrect','PlayNoiseforError','PCTimeout','WaitFinalPokeOutSec','StartEasyTrials',...
     'Percent50Fifty','PercentCatch','CatchError','Ports_LMRAudLRAir','Wire1VideoTrigger'};
 %% StimDelay
 TaskParameters.GUI.StimDelayAutoincrement = 0;
@@ -154,8 +155,8 @@ TaskParameters.GUIMeta.AudStimType.String = AudStimType.String;
 TaskParameters.GUI.LeftSpeakerAttenPrcnt = 80;
 TaskParameters.GUI.RightSpeakerAttenPrcnt = 80;
 TaskParameters.GUI.StimAfterPokeOut = StimAfterPokeOut.NotUsed;
-TaskParameters.GUI.StimAfterPokeOut = false;
-TaskParameters.GUIMeta.StimAfterPokeOut.Style = 'checkbox';
+TaskParameters.GUIMeta.StimAfterPokeOut.Style = 'popupmenu';
+TaskParameters.GUIMeta.StimAfterPokeOut.String = StimAfterPokeOut.String;
 TaskParameters.GUI.BeepAfterMinSampling = false;
 TaskParameters.GUIMeta.BeepAfterMinSampling.Style = 'checkbox';
 TaskParameters.GUIPanels.PoissonClicks = {'SumRates'};
