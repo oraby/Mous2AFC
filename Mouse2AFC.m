@@ -181,13 +181,26 @@ while true
         clear Trials TrialSettings Timer;
     end
     iTrial = iTrial + 1;
+    sleepDur = 0;
     if ~TaskParameters.GUI.PCTimeout
         BpodSystem.Data.Timer(iTrial-1).calculateTimeout = toc;
         continue
     end
-    sleepDur = 0;
-    statesThisTrial = BpodSystem.Data.RawData.OriginalStateNamesByNumber{iTrial-1}(BpodSystem.Data.RawData.OriginalStateData{iTrial-1});
-    if any(strcmp('broke_fixation',statesThisTrial))
+    eventsThisTrial = BpodSystem.Data.RawEvents.Trial{end}.States;
+    if ~any(isnan(eventsThisTrial.Reward))
+        % Calculate time between Reward end and trial end
+        pokeTime = eventsThisTrial.ext_ITI(2) - eventsThisTrial.Reward(2);
+        sleepDur = sleepDur - pokeTime;
+    elseif ~any(isnan(eventsThisTrial.timeOut_IncorrectChoice))
+        % See how long the animal staye in the poke already. WaitPokeOut is
+        % between Punishment and timeOut_IncorrectChoice
+        pokeTime = eventsThisTrial.ext_ITI(2) - ...
+                   eventsThisTrial.Punishment(2);
+        dur = TaskParameters.GUI.TimeOutIncorrectChoice - pokeTime;
+        % Duration can be negative, but it's okay as we want to subtract
+        % the duration from other sleep durations.
+        sleepDur = sleepDur + dur;
+    elseif ~any(isnan(eventsThisTrial.broke_fixation))
         if TaskParameters.GUI.PlayNoiseforError
             if BpodSystem.EmulatorMode == 0
                 OverrideMessage = ['VS' uint8(11)];
@@ -198,19 +211,12 @@ while true
             end
         end
         sleepDur = sleepDur + TaskParameters.GUI.TimeOutBrokeFixation;
-    end
-    if any(strcmp('timeOut_IncorrectChoice',statesThisTrial))
-        sleepDur = sleepDur + TaskParameters.GUI.TimeOutIncorrectChoice;
-    end
-    if any(strcmp('timeOut_SkippedFeedback',statesThisTrial))
+    elseif ~any(isnan(eventsThisTrial.timeOut_missed_choice))
+        sleepDur = sleepDur + TaskParameters.GUI.TimeOutMissedChoice;
+    elseif ~any(isnan(eventsThisTrial.timeOut_SkippedFeedback))
         sleepDur = sleepDur + TaskParameters.GUI.TimeOutSkippedFeedback;
     end
-    if any(strcmp('timeOut_missed_choice',statesThisTrial))
-        sleepDur = sleepDur + TaskParameters.GUI.TimeOutMissedChoice;
-    end
-    if any(strcmp('ITI',statesThisTrial))
-        sleepDur = sleepDur + TaskParameters.GUI.ITI;
-    end
+    sleepDur = sleepDur + TaskParameters.GUI.ITI;
     BpodSystem.Data.Timer(iTrial-1).calculateTimeout = toc;
 end
 sca;
