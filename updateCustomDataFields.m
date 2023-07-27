@@ -367,6 +367,7 @@ NextTrial = BpodSystem.Data.Custom.Trials(iTrial+1);
 % Create as char vector rather than string so that GUI sync doesn't complain
 GUI.IsCatch = iff(NextTrial.CatchTrial, 'true', 'false');
 CurTimer.customFinializeUpdate = toc;
+
 tic;
 % send auditory stimuli to PulsePal for next trial
 if GUI.ExperimentType == ExperimentType.Auditory && ~BpodSystem.EmulatorMode

@@ -23,7 +23,7 @@ switch GUI.BlkSwitchCond
            relevantChoice =  [trials(CurTrialNum-...
                    GUI.BlkSwitchPerfMinGoalNumTrials:CurTrialNum).ChoiceCorrect];
            relevantChoice(isnan(relevantChoice)) = false; %TODO: Make sure that this is a slice
-           fprintf('Num of nan trials is: %d\n', sum(isNan(trials(CurTrialNum-GUI.BlkSwitchPerfMinGoalNumTrials:CurTrialNum).ChoiceCorrect)));
+           fprintf('Num of nan trials is: %d\n', sum(isnan(trials(CurTrialNum-GUI.BlkSwitchPerfMinGoalNumTrials:CurTrialNum).ChoiceCorrect)));
            relevantPerf = 100 * sum(relevantChoice)/len(relevantChoice);
            shouldSwitch = relevantPerf > GUI.BlkSwitchPerfMinGoal;
            return;
