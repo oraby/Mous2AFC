@@ -141,6 +141,8 @@ TaskParameters.GUIMeta.MinSample.Style = 'text';
 TaskParameters.GUI.PercentForcedLEDTrial = 0;
 TaskParameters.GUI.PortLEDtoCueReward = false;
 TaskParameters.GUIMeta.PortLEDtoCueReward.Style = 'checkbox';
+% This is a hidden field
+TaskParameters.GUI.PrimaryOriginalMinSample = NaN;
 % Auditory Specific
 TaskParameters.GUI.SumRates = 100;
 % Light Intensity Specific

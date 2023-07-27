@@ -176,13 +176,15 @@ end
 CurTimer.customStimDelay = toc; tic;
 
 %min sampling time
-if iTrial > GUI.StartEasyTrials
+if ~isnan(GUI.PrimaryOriginalMinSample)
+    GUI.MinSample = GUI.PrimaryOriginalMinSample;
+else
     switch GUI.MinSampleType
         case MinSampleType.FixMin
             GUI.MinSample = GUI.MinSampleMin;
         case MinSampleType.AutoIncr
             % Check if animal completed pre-stimulus delay successfully
-            if ~CurTrial.FixBroke
+            if ~CurTrial.FixBroke && iTrial > GUI.StartEasyTrials
                 if CurTrial.Rewarded
                     GUI.MinSample = min(GUI.MinSampleMax,...
                         max(GUI.MinSampleMin,CurTrial.MinSample + GUI.MinSampleIncr));
@@ -196,14 +198,14 @@ if iTrial > GUI.StartEasyTrials
             end
         case MinSampleType.RandBetMinMax_DefIsMax
             use_rand = rand(1,1) < GUI.MinSampleRandProb;
-            if ~use_rand
+            if ~use_rand || iTrial <= GUI.StartEasyTrials
                 GUI.MinSample = GUI.MinSampleMax;
             else
                 GUI.MinSample = (GUI.MinSampleMax-GUI.MinSampleMin).*rand(1,1) + GUI.MinSampleMin;
             end
         case MinSampleType.RandNumIntervalsMinMax_DefIsMax
             use_rand = rand(1,1) < GUI.MinSampleRandProb;
-            if ~use_rand
+            if ~use_rand || iTrial <= GUI.StartEasyTrials
                 GUI.MinSample = GUI.MinSampleMax;
             else
                 GUI.MinSampleNumInterval = round(GUI.MinSampleNumInterval);
