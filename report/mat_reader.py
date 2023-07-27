@@ -1,8 +1,9 @@
 # requires: pip install click
 import time
 import click
+from pathlib import Path
 import sys
-from mat_reader_core import loadFiles
+from .mat_reader_core import loadFiles
 
 @click.command()
 @click.option('--out', '-o', type=click.Path(),
@@ -49,7 +50,9 @@ def main(out, input, out_date_suffix, mini_df, append_df, interactive,
   if not append_df:
     if not out:
       raise ValueError("Neither --out nor --append were specified")
-    name = f"{out}{suffix}.dump"
+    name = Path(out)
+    ext = '.pkl' if name.suffix is '' else name.suffix
+    name = f"{name.parent}/{name.stem}{suffix}{ext}"
     print("Potential Resulting name:", name)
   if few_trials_load:
     with open(few_trials_load) as f:
@@ -72,7 +75,9 @@ def main(out, input, out_date_suffix, mini_df, append_df, interactive,
                f"{df.Date.max().strftime('%Y_%m_%d')}"
     else:
       suffix = ""
-    name = f"{out}{suffix}.dump"
+    name = Path(out)
+    ext = '.pkl' if name.suffix is '' else name.suffix
+    name = f"{name.parent}/{name.stem}{suffix}{ext}"
 
   def saveMetaFiles():
     if few_trials_save:
