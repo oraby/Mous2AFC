@@ -16,6 +16,7 @@ m_read.Data(17:20) = typecast(uint32(0), 'uint8'); %iTrial
 m_read.Data(21:24) = typecast(uint32(0), 'uint8'); %Flag not reading
 
 should_initialize = false;
+sessStartTimeDate = datetime(); % Will be overriden. Just for verbosity.
 while true
     sessStartTime = typecast(m_data.Data(1:8), 'double');
     updateTime = typecast(m_data.Data(9:16), 'double');
@@ -66,16 +67,19 @@ while true
         end
         fprintf('Received start trial: %d\n', newData.startTrial);
         SessionData = recursiveAssign(SessionData, newData, newData.startTrial);
-        iTrial = max([SessionData.Custom.Trials.TrialNumber]);
+        iTrial = max([SessionData.Custom.Trials.TrialNumber]) - 1;
 
         if should_initialize % First run
             % TODO: We can just replicate here the unused slots of
             % TaskParameters up to the PREALLOC_TRIALS with NaN values.
             % TODO: See if you need to disable the graphs again
             GUIHandles = initializeFigures();
+            sessStartTimeDate = datetime(...
+                uint64(SessionData.SettingsFile.StartTime),'ConvertFrom',...
+                'epochtime','Format','dd-MMM HH:mm:ss');
             GUIHandles.OutcomePlot = MainPlot2(GUIHandles.OutcomePlot,'init',...
                 SessionData.Custom, SessionData.TrialSettings(iTrial),...
-                SessionData.TrialStartTimestamp(1:iTrial));
+                SessionData.TrialStartTimestamp(1:iTrial), sessStartTimeDate);
             should_initialize = false;
             SessionData.TrialSettings(iTrial+1:PREALLOC_TRIALS) =...
                                                SessionData.TrialSettings(iTrial);
@@ -85,7 +89,8 @@ while true
 
         GUIHandles.OutcomePlot = MainPlot2(GUIHandles.OutcomePlot,'update',...
             SessionData.Custom, SessionData.TrialSettings(iTrial),...
-            SessionData.TrialStartTimestamp(1:iTrial), iTrial);
+            SessionData.TrialStartTimestamp(1:iTrial), sessStartTimeDate,...
+            iTrial);
         drawnow;
         m_read.Data(17:20) = typecast(uint32(iTrial), 'uint8');
         fprintf('Last reported trial is %d at time %d\n', iTrial,...
@@ -127,13 +132,13 @@ Figures.OutcomePlot.Position = [200, 200, 1000, 400];
 Figures.ParameterGUI.Position =  [9, 454, 1474, 562];
 
 ProtocolFigures.SideOutcomePlotFig = figure('Position', Figures.OutcomePlot.Position,'name','Outcome plot','numbertitle','off', 'MenuBar', 'none', 'Resize', 'off');
-GUIHandles.OutcomePlot.HandleOutcome = axes('Position',    [  .055          .15 .91 .3]);
-GUIHandles.OutcomePlot.HandlePsycStim = axes('Position',    [2*.05 + 1*.08   .6  .1  .3], 'Visible', 'off');
-GUIHandles.OutcomePlot.HandleTrialRate = axes('Position',  [3*.05 + 2*.08   .6  .1  .3], 'Visible', 'off');
-GUIHandles.OutcomePlot.HandleFix = axes('Position',        [4*.05 + 3*.08   .6  .1  .3], 'Visible', 'off');
-GUIHandles.OutcomePlot.HandleST = axes('Position',         [5*.05 + 4*.08   .6  .1  .3], 'Visible', 'off');
-GUIHandles.OutcomePlot.HandleFeedback = axes('Position',   [6*.05 + 5*.08   .6  .1  .3], 'Visible', 'off');
-GUIHandles.OutcomePlot.HandleVevaiometric = axes('Position',   [7*.05 + 6*.08   .6  .1  .3], 'Visible', 'off');
+GUIHandles.OutcomePlot.HandleOutcome = axes('Position',     [  .06           .2 .91 .3]);
+GUIHandles.OutcomePlot.HandlePsycStim = axes('Position',    [2*.05 + 1*.08   .65  .1  .3], 'Visible', 'off');
+GUIHandles.OutcomePlot.HandleTrialRate = axes('Position',   [3*.05 + 2*.08   .65  .1  .3], 'Visible', 'off');
+GUIHandles.OutcomePlot.HandleFix = axes('Position',         [4*.05 + 3*.08   .65  .1  .3], 'Visible', 'off');
+GUIHandles.OutcomePlot.HandleST = axes('Position',          [5*.05 + 4*.08   .65  .1  .3], 'Visible', 'off');
+GUIHandles.OutcomePlot.HandleFeedback = axes('Position',    [6*.05 + 5*.08   .65  .1  .3], 'Visible', 'off');
+GUIHandles.OutcomePlot.HandleVevaiometric = axes('Position',[7*.05 + 6*.08   .65  .1  .3], 'Visible', 'off');
 end
 
 function struct_dst = recursiveAssign(struct_dst, struct_src, start_cpy_idx)

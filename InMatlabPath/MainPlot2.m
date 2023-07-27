@@ -1,4 +1,6 @@
-function AxesHandles = MainPlot2(AxesHandles, Action, DataCustom, TaskParametersGUI, TrialStartTimestamp, varargin)
+function AxesHandles = MainPlot2(AxesHandles, Action, DataCustom,...
+                                 TaskParametersGUI, TrialStartTimestamp,...
+                                 SessionStartTime, varargin)
 global nTrialsToShow %this is for convenience
 
 switch Action
@@ -8,7 +10,7 @@ switch Action
         %initialize pokes plot
         nTrialsToShow = 90; %default number of trials to display
 
-        if nargin >=6  %custom number of trials
+        if nargin >=7  %custom number of trials
             nTrialsToShow = varargin{1};
         end
         axes(AxesHandles.HandleOutcome);
@@ -28,6 +30,8 @@ switch Action
         set(AxesHandles.HandleOutcome,'TickDir', 'out','XLim',[0, nTrialsToShow],'YLim', [-1.25, 1.25], 'YTick', [-1, 1],'YTickLabel', {'Right','Left'}, 'FontSize', 13);
         set(AxesHandles.Stim,'xdata',1:DataCustom.DVsAlreadyGenerated,'ydata',[DataCustom.Trials(1:DataCustom.DVsAlreadyGenerated).DV]);
         xlabel(AxesHandles.HandleOutcome, 'Trial#', 'FontSize', 14);
+        lbl = sprintf('Trial # - Cur Trial: %d\n%s - Session Start: %s', 1, DataCustom.Subject, SessionStartTime);
+        xlabel(AxesHandles.HandleOutcome, lbl, 'FontSize', 12);
         hold(AxesHandles.HandleOutcome, 'on');
         %% Psyc Stimulus
         AxesHandles.PsycStim = line(AxesHandles.HandlePsycStim,[-1 1],[.5 .5], 'LineStyle','none','Marker','o','MarkerEdge','k','MarkerFace','k', 'MarkerSize',6,'Visible','off');
@@ -182,6 +186,11 @@ switch Action
         Xdata = indxToPlot(ndxCatch&~ndxMiss);
         Ydata = [DataCustom.Trials(indxToPlot).DV]; Ydata = Ydata(ndxCatch&~ndxMiss);
         set(AxesHandles.Catch, 'xdata', Xdata, 'ydata', Ydata);
+        runtime = seconds(TrialStartTimestamp(end)-TrialStartTimestamp(1));
+        runtime.Format = 'hh:mm:ss';
+        lbl = sprintf('Trial # - Cur Trial: %d\n%s - Session Start: %s - RunTime: %s',...
+                      iTrial, DataCustom.Subject, SessionStartTime, runtime);
+        xlabel(AxesHandles.HandleOutcome, lbl, 'FontSize', 12);
         %% Psych Stim
         if TaskParametersGUI.ShowPsycStim
             ndxNan = isnan([DataCustom.Trials(1:iTrial).ChoiceLeft]);
