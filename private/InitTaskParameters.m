@@ -1,6 +1,6 @@
 function [TaskParameters, Quit] = InitTaskParameters(TaskParameters,...
                                                   SubjectName_, SettingsFileName)
-GUICurVer = 44;
+GUICurVer = 46;
 Quit = false;
 DefaultTaskParameter = CreateTaskParameters(GUICurVer);
 if isempty(fieldnames(TaskParameters))
