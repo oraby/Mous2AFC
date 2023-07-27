@@ -14,22 +14,34 @@ switch Action
             nTrialsToShow = varargin{1};
         end
         axes(AxesHandles.HandleOutcome);
+        line([0 3000], [1.3  1.3], 'LineStyle', '--', 'Color', [0.4 0.4 0.4]);
+        line([0 3000], [1.1  1.1], 'LineStyle', '--', 'Color', [0.4 0.4 0.4]);
+        line([0 3000], [-1.1  -1.1], 'LineStyle', '--', 'Color', [0.4 0.4 0.4]);
+        line([0 3000], [-1.3  -1.3], 'LineStyle', '--', 'Color', [0.4 0.4 0.4]);
+        annotation('textbox',[.9 .31 .1 .2], 'String','Sec Exp', 'EdgeColor', 'none', 'FontSize', 8);
+        annotation('textbox',[.9 .27 .1 .2], 'String','No Stim', 'EdgeColor', 'none', 'FontSize', 8);
+        annotation('textbox',[.9 .09  .1 .2], 'String','No Stim', 'EdgeColor', 'none', 'FontSize', 8);
+        annotation('textbox',[.9 .045 .1 .2], 'String','Sec Exp', 'EdgeColor', 'none', 'FontSize', 8);
         %plot in specified axes
-        AxesHandles.Stim = line(-1,1, 'LineStyle','none','Marker','o','MarkerEdge',[.5,.5,.5],'MarkerFace',[.7,.7,.7], 'MarkerSize',8);
-        AxesHandles.DV = line(1:DataCustom.DVsAlreadyGenerated, [DataCustom.Trials(1:DataCustom.DVsAlreadyGenerated).DV], 'LineStyle','none','Marker','o','MarkerEdge','b','MarkerFace','b', 'MarkerSize',6);
+        DV = [DataCustom.Trials(1:DataCustom.DVsAlreadyGenerated).StimulusOmega]*2 - 1; % Use stimulus Omega as a proxy for DV
+        AxesHandles.DV = line(1:DataCustom.DVsAlreadyGenerated, DV, 'LineStyle','none','Marker','o','MarkerEdge','b','MarkerFace','b', 'MarkerSize',6);
         AxesHandles.CurrentTrialCircle = line(1,0, 'LineStyle','none','Marker','o','MarkerEdge','k','MarkerFace',[1 1 1], 'MarkerSize',6);
         AxesHandles.CurrentTrialCross = line(1,0, 'LineStyle','none','Marker','+','MarkerEdge','k','MarkerFace',[1 1 1], 'MarkerSize',6);
         AxesHandles.CumRwd = text(1,1,'0mL','verticalalignment','bottom','horizontalalignment','center');
         AxesHandles.Correct = line(-1,1, 'LineStyle','none','Marker','o','MarkerEdge','g','MarkerFace','g', 'MarkerSize',6);
         AxesHandles.Incorrect = line(-1,1, 'LineStyle','none','Marker','o','MarkerEdge','r','MarkerFace','r', 'MarkerSize',6);
+        % TODO: Get rid of NoChoice and Sec NoChoice (if possible) and just use normal blue DV plotting.
+        AxesHandles.PrimNoStimNoChoice= line(-1,1, 'LineStyle','none','Marker','o','MarkerEdge',[1, 1, 1],'MarkerFace', 'b', 'MarkerSize',8); % around DV limits
+        AxesHandles.SecDVCorrect = line(-1,1, 'LineStyle','none','Marker','o','MarkerEdge',[0, 0, 0],'MarkerFace', [1, 1, 1], 'MarkerSize',8); % around Primary No Stim
+        AxesHandles.SecDVIncorrect = line(-1,1, 'LineStyle','none','Marker','o','MarkerEdge',[1, 1, 1],'MarkerFace', 'k', 'MarkerSize',8); % around Primary No Stim
+        AxesHandles.SecDVNoChoice= line(-1,1, 'LineStyle','none','Marker','o','MarkerEdge',[1, 1, 1],'MarkerFace', 'b', 'MarkerSize',8); % around Primary No Stim
+        AxesHandles.SecDV = line(-1,1, 'LineStyle','none','Marker','o','MarkerEdge','none','MarkerFace',[.7,.7,.7], 'MarkerSize',6);
         AxesHandles.BrokeFix = line(-1,0, 'LineStyle','none','Marker','d','MarkerEdge','b','MarkerFace','none', 'MarkerSize',6);
         AxesHandles.EarlyWithdrawal = line(-1,0, 'LineStyle','none','Marker','d','MarkerEdge','none','MarkerFace','b', 'MarkerSize',6);
         AxesHandles.NoFeedback = line(-1,0, 'LineStyle','none','Marker','o','MarkerEdge','none','MarkerFace','w', 'MarkerSize',5);
         AxesHandles.NoResponse = line(-1,[0 1], 'LineStyle','none','Marker','x','MarkerEdge','w','MarkerFace','none', 'MarkerSize',6);
         AxesHandles.Catch = line(-1,[0 1], 'LineStyle','none','Marker','o','MarkerEdge',[0,0,0],'MarkerFace',[0,0,0], 'MarkerSize',4);
-        set(AxesHandles.HandleOutcome,'TickDir', 'out','XLim',[0, nTrialsToShow],'YLim', [-1.25, 1.25], 'YTick', [-1, 1],'YTickLabel', {'Right','Left'}, 'FontSize', 13);
-        set(AxesHandles.Stim,'xdata',1:DataCustom.DVsAlreadyGenerated,'ydata',[DataCustom.Trials(1:DataCustom.DVsAlreadyGenerated).DV]);
-        xlabel(AxesHandles.HandleOutcome, 'Trial#', 'FontSize', 14);
+        set(AxesHandles.HandleOutcome,'TickDir', 'out','XLim',[0, nTrialsToShow],'YLim', [-1.6, 1.6], 'YTick', [-1, 1],'YTickLabel', {'Right','Left'}, 'FontSize', 13);
         lbl = sprintf('Trial # - Cur Trial: %d\n%s - Session Start: %s', 1, DataCustom.Subject, SessionStartTime);
         xlabel(AxesHandles.HandleOutcome, lbl, 'FontSize', 12);
         hold(AxesHandles.HandleOutcome, 'on');
@@ -135,32 +147,46 @@ switch Action
         [mn, ~] = rescaleX(AxesHandles.HandleOutcome,iTrial,nTrialsToShow); % recompute xlim
         %Plot past trial outcomes
         indxToPlot = mn:iTrial;
-        % As DVs are generated on spot, use Stimulus omega instead as a
-        % proxy for DV for future trials
-        FutureDV = num2cell([DataCustom.Trials(iTrial+1:DataCustom.DVsAlreadyGenerated).StimulusOmega]*2 - 1);
-        [DataCustom.Trials(iTrial+1:DataCustom.DVsAlreadyGenerated).DV] = FutureDV{:};
-
+        % As DVs are generated on spot and can be sometimes NaN, use Stimulus
+        % omega instead as a proxy for DV for past, current and future trials
+        DV = [DataCustom.Trials(1:DataCustom.DVsAlreadyGenerated).StimulusOmega]*2 - 1;
+        choiceLeft = [DataCustom.Trials(indxToPlot).ChoiceLeft];
         set(AxesHandles.CurrentTrialCircle, 'xdata', iTrial+1, 'ydata', 0);
         set(AxesHandles.CurrentTrialCross, 'xdata', iTrial+1, 'ydata', 0);
-
         %plot modality background
-        set(AxesHandles.Stim,'xdata',1:DataCustom.DVsAlreadyGenerated,'ydata',[DataCustom.Trials(1:DataCustom.DVsAlreadyGenerated).DV]);
-        %plot past&future trials
-        set(AxesHandles.DV, 'xdata', mn:DataCustom.DVsAlreadyGenerated,'ydata',[DataCustom.Trials(mn:DataCustom.DVsAlreadyGenerated).DV]);
+        ndxNoStimDV = isnan([DataCustom.Trials(indxToPlot).DV]);
+        %plot past&future trials. Plot it on two steps
+        Xdata1 = mn:iTrial;
+        Xdata1 = Xdata1(~ndxNoStimDV);
+        Ydata1 = DV(mn:iTrial);
+        Ydata1 = Ydata1(~ndxNoStimDV);
+        Xdata2 = iTrial+1:DataCustom.DVsAlreadyGenerated;
+        Ydata2 = DV(iTrial+1:DataCustom.DVsAlreadyGenerated);
+        set(AxesHandles.DV, 'xdata', [Xdata1 Xdata2] ,'ydata', [Ydata1 Ydata2]);
+        %plot secondary modality background
+        SecDV = [DataCustom.Trials(indxToPlot).SecDV];
+        ndxSecDV = ~isnan(SecDV);
+        SecXdata = indxToPlot(ndxSecDV);
+        Ydata = SecDV(ndxSecDV);
+        set(AxesHandles.SecDV, 'xdata', SecXdata,'ydata', Ydata);
 
         %Cumulative Reward Amount
         RewardObtained = CalcRewObtained(DataCustom, iTrial);
-        set(AxesHandles.CumRwd, 'position', [iTrial+1 1], 'string', ...
+        set(AxesHandles.CumRwd, 'position', [iTrial+9 0.7], 'string', ...
             [num2str(RewardObtained/1000) ' mL']);
         %Plot Rewarded
         ndxCor = [DataCustom.Trials(indxToPlot).ChoiceCorrect] == 1;
         Xdata = indxToPlot(ndxCor);
-        Ydata = [DataCustom.Trials(indxToPlot).DV]; Ydata = Ydata(ndxCor);
+        ndxNoStim = ndxNoStimDV(Xdata-mn+1);
+        Ydata = DV(indxToPlot); Ydata = Ydata(ndxCor);
+        Ydata(ndxNoStim & Ydata < 0) = -1.2; Ydata(ndxNoStim & Ydata > 0) = 1.2;
         set(AxesHandles.Correct, 'xdata', Xdata, 'ydata', Ydata);
         %Plot Incorrect
         ndxInc = [DataCustom.Trials(indxToPlot).ChoiceCorrect] == 0;
         Xdata = indxToPlot(ndxInc);
-        Ydata = [DataCustom.Trials(indxToPlot).DV]; Ydata = Ydata(ndxInc);
+        ndxNoStim = ndxNoStimDV(Xdata-mn+1);
+        Ydata = DV(indxToPlot); Ydata = Ydata(ndxInc);
+        Ydata(ndxNoStim & Ydata < 0) = -1.2; Ydata(ndxNoStim & Ydata > 0) = 1.2;
         set(AxesHandles.Incorrect, 'xdata', Xdata, 'ydata', Ydata);
         %Plot Broken Fixation
         ndxBroke = [DataCustom.Trials(indxToPlot).FixBroke];
@@ -174,18 +200,47 @@ switch Action
         %Plot missed choice trials
         ndxMiss = isnan([DataCustom.Trials(indxToPlot).ChoiceLeft])&~ndxBroke&~ndxEarly;
         Xdata = indxToPlot(ndxMiss);
-        Ydata = [DataCustom.Trials(indxToPlot).DV]; Ydata = Ydata(ndxMiss);
+        Ydata = DV(indxToPlot); Ydata = Ydata(ndxMiss);
         set(AxesHandles.NoResponse, 'xdata', Xdata, 'ydata', Ydata);
         %Plot NoFeedback trials
         ndxNoFeedback = ~[DataCustom.Trials(indxToPlot).Feedback];
         Xdata = indxToPlot(ndxNoFeedback&~ndxMiss);
-        Ydata = [DataCustom.Trials(indxToPlot).DV]; Ydata = Ydata(ndxNoFeedback&~ndxMiss);
+        ndxNoStim = ndxNoStimDV(Xdata-mn+1);
+        Ydata = DV(indxToPlot); Ydata = Ydata(ndxNoFeedback&~ndxMiss);
+        Ydata(ndxNoStim & Ydata < 0) = -1.2; Ydata(ndxNoStim & Ydata > 0) = 1.2;
         set(AxesHandles.NoFeedback, 'xdata', Xdata, 'ydata', Ydata);
         %Plot catch trials
         ndxCatch = [DataCustom.Trials(indxToPlot).CatchTrial];
         Xdata = indxToPlot(ndxCatch&~ndxMiss);
-        Ydata = [DataCustom.Trials(indxToPlot).DV]; Ydata = Ydata(ndxCatch&~ndxMiss);
+        ndxNoStim = ndxNoStimDV(Xdata-mn+1);
+        Ydata = DV(indxToPlot); Ydata = Ydata(ndxCatch&~ndxMiss);
+        Ydata(ndxNoStim & Ydata < 0) = -1.2; Ydata(ndxNoStim & Ydata > 0) = 1.2;
         set(AxesHandles.Catch, 'xdata', Xdata, 'ydata', Ydata);
+        % Make non used primary DV transparent, this would happen if secondary DV
+        % is set to be used alone. This should be also used for
+        % ExperimentType == no stimulus, but we don't have access to this
+        % information here.
+        Xdata = indxToPlot(ndxNoStimDV & isnan(choiceLeft));
+        Ydata = DV(indxToPlot); Ydata = Ydata(ndxNoStimDV & isnan(choiceLeft));
+        Ydata(Ydata < 0) = -1.2; Ydata(Ydata > 0) = 1.2;
+        set(AxesHandles.PrimNoStimNoChoice, 'xdata', Xdata, 'ydata', Ydata);
+        if ~isempty(SecXdata)
+            leftSecDV = SecDV == 1;
+            ndxSecCor = leftSecDV == choiceLeft;
+            Xdata = indxToPlot(ndxSecCor);
+            Ydata = SecDV(ndxSecCor);
+            Ydata(Ydata < 0) = -1.4; Ydata(Ydata > 0) = 1.4;
+            set(AxesHandles.SecDVCorrect, 'xdata', Xdata, 'ydata', Ydata);
+            ndxSecInc = (leftSecDV ~= choiceLeft) & ~isnan(choiceLeft);
+            Xdata = indxToPlot(ndxSecInc);
+            Ydata = SecDV(ndxSecInc);
+            Ydata(Ydata < 0) = -1.4; Ydata(Ydata > 0) = 1.4;
+            set(AxesHandles.SecDVIncorrect, 'xdata', Xdata, 'ydata', Ydata);
+            Xdata = indxToPlot(ndxSecDV & isnan(choiceLeft));
+            Ydata = SecDV(ndxSecDV & isnan(choiceLeft));
+            Ydata(Ydata < 0) = -1.4; Ydata(Ydata > 0) = 1.4;
+            set(AxesHandles.SecDVNoChoice, 'xdata', Xdata, 'ydata', Ydata);
+        end
         runtime = seconds(TrialStartTimestamp(end)-TrialStartTimestamp(1));
         runtime.Format = 'hh:mm:ss';
         lbl = sprintf('Trial # - Cur Trial: %d\n%s - Session Start: %s - RunTime: %s',...
@@ -194,33 +249,42 @@ switch Action
         %% Psych Stim
         if TaskParametersGUI.ShowPsycStim
             ndxNan = isnan([DataCustom.Trials(1:iTrial).ChoiceLeft]);
-            ndxChoice = [DataCustom.Trials(1:iTrial).ForcedLEDTrial] == 0;
-            ndxForced = [DataCustom.Trials(1:iTrial).ForcedLEDTrial] == 1;
+            ForcedTrials = [DataCustom.Trials(1:iTrial).ForcedLEDTrial];
+            ndxChoice = ForcedTrials == 0 & ...
+                        ~isnan([DataCustom.Trials(1:iTrial).DV]);
+            ndxForced = ForcedTrials == 1 |...
+                        ~isnan([DataCustom.Trials(1:iTrial).SecDV]);
             StimDV = [DataCustom.Trials(1:iTrial).DV];
+            StimSecDV = [DataCustom.Trials(1:iTrial).SecDV];
+            % Try to handle case where forced cue LED was on, but maybe
+            % second experiment wasn't used.
+            StimSecDV(ForcedTrials == 1) = StimDV(ForcedTrials == 1);
             StimBin = 8;
-            BinIdx = discretize(StimDV,linspace(min(StimDV),max(StimDV),StimBin+1));
-
             % Choice trials
-            PsycY = grpstats([DataCustom.Trials(~ndxNan&ndxChoice).ChoiceLeft],BinIdx(~ndxNan&ndxChoice),'mean');
-            PsycX = unique(BinIdx(~ndxNan&ndxChoice))/StimBin*2-1-1/StimBin;
-            AxesHandles.PsycStim.YData = PsycY;
-            AxesHandles.PsycStim.XData = PsycX;
             if sum(~ndxNan&ndxChoice) > 1
+                BinIdx = discretize(StimDV,linspace(min(StimDV),max(StimDV),StimBin+1));
+                PsycY = grpstats([DataCustom.Trials(~ndxNan&ndxChoice).ChoiceLeft],BinIdx(~ndxNan&ndxChoice),'mean');
+                PsycX = unique(BinIdx(~ndxNan&ndxChoice))/StimBin*2-1-1/StimBin;
+                AxesHandles.PsycStim.YData = PsycY;
+                AxesHandles.PsycStim.XData = PsycX;
                 AxesHandles.PsycStimFit.XData = linspace(min(StimDV),max(StimDV),100);
                 AxesHandles.PsycStimFit.YData = glmval(glmfit(StimDV(~ndxNan&ndxChoice),...
                     [DataCustom.Trials(~ndxNan&ndxChoice).ChoiceLeft]','binomial'),linspace(min(StimDV),max(StimDV),100),'logit');
             end
-
             % Forced trials
-            PsycY = grpstats([DataCustom.Trials(~ndxNan&ndxForced).ChoiceLeft],BinIdx(~ndxNan&ndxForced),'mean');
-            PsycX = unique(BinIdx(~ndxNan&ndxForced))/StimBin*2-1-1/StimBin;
-            AxesHandles.PsycStimForced.YData = PsycY;
-            AxesHandles.PsycStimForced.XData = PsycX;
             if sum(~ndxNan&ndxForced) > 1
-                AxesHandles.PsycStimForcedFit.XData = linspace(min(StimDV),max(StimDV),100);
-                AxesHandles.PsycStimForcedFit.YData = glmval(glmfit(StimDV(~ndxNan&ndxForced),...
-                    [DataCustom.Trials(~ndxNan&ndxForced).ChoiceLeft]','binomial'),linspace(min(StimDV),max(StimDV),100),'logit');
+                SecBinIdx = discretize(StimSecDV,linspace(min(StimSecDV),max(StimSecDV),StimBin+1));
+                PsycY = grpstats([DataCustom.Trials(~ndxNan&ndxForced).ChoiceLeft],SecBinIdx(~ndxNan&ndxForced),'mean');
+                PsycX = unique(SecBinIdx(~ndxNan&ndxForced))/StimBin*2-1-1/StimBin;
+                AxesHandles.PsycStimForced.YData = PsycY;
+                AxesHandles.PsycStimForced.XData = PsycX;
+                % Still use main DV here so we'd have the same scale on the
+                % Psychometric x-axis
+                AxesHandles.PsycStimForcedFit.XData = linspace(min(StimSecDV),max(StimSecDV),100);
+                AxesHandles.PsycStimForcedFit.YData = glmval(glmfit(StimSecDV(~ndxNan&ndxForced),...
+                    [DataCustom.Trials(~ndxNan&ndxForced).ChoiceLeft]','binomial'),linspace(min(StimSecDV),max(StimSecDV),100),'logit');
             end
+
         end
         %% Vevaiometric
         if TaskParametersGUI.ShowVevaiometric
@@ -229,27 +293,30 @@ switch Action
             ndxError = [DataCustom.Trials(1:iTrial).ChoiceCorrect] == 0 ; %all (completed) error trials (including catch errors)
             ndxCorrectCatch = [DataCustom.Trials(1:iTrial).CatchTrial] & [DataCustom.Trials(1:iTrial).ChoiceCorrect] == 1; %only correct catch trials
             ndxMinWT = [DataCustom.Trials(1:iTrial).FeedbackTime] > TaskParametersGUI.VevaiometricMinWT;
-            DV = [DataCustom.Trials(1:iTrial).DV];
+            % Also use here StimulusOmega as a proxy for DV
+            DV = [DataCustom.Trials(1:iTrial).StimulusOmega]*2 - 1;
             DVNBin = TaskParametersGUI.VevaiometricNBin;
-            BinIdx = discretize(DV,linspace(min(StimDV),max(StimDV),DVNBin+1));
-            WTerr = grpstats([DataCustom.Trials(ndxError&ndxMinWT).FeedbackTime],BinIdx(ndxError&ndxMinWT),'mean')';
-            WTcatch = grpstats([DataCustom.Trials(ndxCorrectCatch&ndxMinWT).FeedbackTime],BinIdx(ndxCorrectCatch&ndxMinWT),'mean')';
-            Xerr = unique(BinIdx(ndxError&ndxMinWT))/DVNBin*2-1-1/DVNBin;
-            Xcatch = unique(BinIdx(ndxCorrectCatch&ndxMinWT))/DVNBin*2-1-1/DVNBin;
-            AxesHandles.VevaiometricErr.YData = WTerr;
-            AxesHandles.VevaiometricErr.XData = Xerr;
-            AxesHandles.VevaiometricCatch.YData = WTcatch;
-            AxesHandles.VevaiometricCatch.XData = Xcatch;
-            if TaskParametersGUI.VevaiometricShowPoints
-                AxesHandles.VevaiometricPointsErr.YData = [DataCustom.Trials(ndxError&ndxMinWT).FeedbackTime];
-                AxesHandles.VevaiometricPointsErr.XData = DV(ndxError&ndxMinWT);
-                AxesHandles.VevaiometricPointsCatch.YData = [DataCustom.Trials(ndxCorrectCatch&ndxMinWT).FeedbackTime];
-                AxesHandles.VevaiometricPointsCatch.XData = DV(ndxCorrectCatch&ndxMinWT);
-            else
-                AxesHandles.VevaiometricPointsErr.YData = -1;
-                AxesHandles.VevaiometricPointsErr.XData = 0;
-                AxesHandles.VevaiometricPointsCatch.YData = -1;
-                AxesHandles.VevaiometricPointsCatch.XData = 0;
+            if ~isnan(StimDV)
+                BinIdx = discretize(DV,linspace(min(StimDV),max(StimDV),DVNBin+1));
+                WTerr = grpstats([DataCustom.Trials(ndxError&ndxMinWT).FeedbackTime],BinIdx(ndxError&ndxMinWT),'mean')';
+                WTcatch = grpstats([DataCustom.Trials(ndxCorrectCatch&ndxMinWT).FeedbackTime],BinIdx(ndxCorrectCatch&ndxMinWT),'mean')';
+                Xerr = unique(BinIdx(ndxError&ndxMinWT))/DVNBin*2-1-1/DVNBin;
+                Xcatch = unique(BinIdx(ndxCorrectCatch&ndxMinWT))/DVNBin*2-1-1/DVNBin;
+                AxesHandles.VevaiometricErr.YData = WTerr;
+                AxesHandles.VevaiometricErr.XData = Xerr;
+                AxesHandles.VevaiometricCatch.YData = WTcatch;
+                AxesHandles.VevaiometricCatch.XData = Xcatch;
+                if TaskParametersGUI.VevaiometricShowPoints
+                    AxesHandles.VevaiometricPointsErr.YData = [DataCustom.Trials(ndxError&ndxMinWT).FeedbackTime];
+                    AxesHandles.VevaiometricPointsErr.XData = DV(ndxError&ndxMinWT);
+                    AxesHandles.VevaiometricPointsCatch.YData = [DataCustom.Trials(ndxCorrectCatch&ndxMinWT).FeedbackTime];
+                    AxesHandles.VevaiometricPointsCatch.XData = DV(ndxCorrectCatch&ndxMinWT);
+                else
+                    AxesHandles.VevaiometricPointsErr.YData = -1;
+                    AxesHandles.VevaiometricPointsErr.XData = 0;
+                    AxesHandles.VevaiometricPointsCatch.YData = -1;
+                    AxesHandles.VevaiometricPointsCatch.XData = 0;
+                end
             end
         end
         %% Trial rate
