@@ -186,6 +186,17 @@ TaskParameters.GUIPanels.CurrentTrial = {'MouseState','MouseWeight',...
     'StimDelay','MinSample','CurrentStim','CalcLeftBias',...
     'FeedbackDelay','IsCatch','IsOptoTrial','Block','Performance',...
     'AllPerformance'};
+% Extended Report Tab
+TaskParameters.GUI.PrimExpPerformance = '(Calc. after PrimExp 1st trial)';
+TaskParameters.GUI.PrimExpAllPerformance = '(Calc. after PrimExp 1st trial)';
+TaskParameters.GUI.SecExpPerformance = '(Calc. after 2ndExp 1st trial)';
+TaskParameters.GUI.SecExpAllPerformance = '(Calc. after 2ndExp 1st trial)';
+TaskParameters.GUIMeta.PrimExpPerformance.Style = 'text';
+TaskParameters.GUIMeta.PrimExpAllPerformance.Style = 'text';
+TaskParameters.GUIMeta.SecExpPerformance.Style = 'text';
+TaskParameters.GUIMeta.SecExpAllPerformance.Style = 'text';
+TaskParameters.GUIPanels.ExtendedReport = {'PrimExpPerformance',...
+    'PrimExpAllPerformance','SecExpPerformance','SecExpAllPerformance'};
 % General Visual options
 TaskParameters.GUI.VisualStimAnglePortRight = VisualStimAngle.Degrees90;
 TaskParameters.GUIMeta.VisualStimAnglePortRight.Style = 'popupmenu';
@@ -320,7 +331,7 @@ TaskParameters.GUI = orderfields(TaskParameters.GUI);
 %% Tabs
 TaskParameters.GUITabs.General = {'CurrentTrial','Experiment','General','FeedbackDelay','StimDelay'};
 TaskParameters.GUITabs.Sampling = {'CurrentTrial','LightIntensity','Sampling','StimulusSelection'};
-TaskParameters.GUITabs.Blocks = {'CurrentTrial','Block2','CatchDist'};
+TaskParameters.GUITabs.Blocks = {'CurrentTrial','Block2','ExtendedReport','CatchDist'};
 TaskParameters.GUITabs.Visual = {'CurrentTrial','Grating','RandomDots','VisualGeneral','RandomDotsPulse'};
 TaskParameters.GUITabs.Auditory = {'CurrentTrial','PoissonClicks','SoundIntensity',};
 TaskParameters.GUITabs.Triggers = {'Optogenetics','AirControl'};

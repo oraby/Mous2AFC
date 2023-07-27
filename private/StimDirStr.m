@@ -1,8 +1,10 @@
-function Str = StimDirStr(ExpType, DV, SecExpType, SecDV)
+function Str = StimDirStr(ExpType, DV, SecExpType, SecDV, IsLeftRewarded)
 
 function Str_ = SingleExp(ExpType_, DV_)
 if ExpType_ == ExperimentType.RandomDots
     Str_ = strcat(num2str(abs(DV_/0.01)), iff(DV_ < 0,'%R cohr.', '%L cohr.'));
+elseif ExpType_ == ExperimentType.NoStimulus
+    Str_ = sprintf('No Stim (%s)', iff(IsLeftRewarded,'L', 'R'));
 else
     % Set between -100 to +100
     StimIntensity = num2str(iff(DV_ > 0, (DV_+1)/0.02, (DV_-1)/-0.02));

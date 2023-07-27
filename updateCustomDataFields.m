@@ -297,33 +297,14 @@ GUI.CalcLeftBias = (PerfL-PerfR)/2 + 0.5;
 CurTimer.customCalcBias = toc; tic;
 
 allTrialsChoices = [BpodSystem.Data.Custom.Trials(1:iTrial).ChoiceCorrect];
-choiceMadeTrials = allTrialsChoices(~isnan(allTrialsChoices));
-rewardedTrialsCount = sum([BpodSystem.Data.Custom.Trials(1:iTrial).Rewarded] == 1);
-lengthChoiceMadeTrials = length(choiceMadeTrials);
-if lengthChoiceMadeTrials >= 1
-    performance = rewardedTrialsCount/lengthChoiceMadeTrials;
-    GUI.Performance = [num2str(performance*100,'%.2f'),'%/',num2str(lengthChoiceMadeTrials), 'T'];
-    performance = rewardedTrialsCount/iTrial;
-    GUI.AllPerformance = [num2str(performance*100,'%.2f'),'%/',num2str(iTrial),'T'];
-    NUM_LAST_TRIALS=20;
-    if iTrial > NUM_LAST_TRIALS
-        if lengthChoiceMadeTrials > NUM_LAST_TRIALS
-            rewardedTrials_ = choiceMadeTrials(...
-                lengthChoiceMadeTrials-NUM_LAST_TRIALS + 1 :...
-                lengthChoiceMadeTrials);
-            performance = sum(rewardedTrials_ == true)/NUM_LAST_TRIALS;
-            GUI.Performance = [GUI.Performance,' - ',...
-                               num2str(performance*100,'%.2f'), '%/',num2str(NUM_LAST_TRIALS) ,'T'];
-        end
-        rewardedTrialsCount = sum(...
-            [BpodSystem.Data.Custom.Trials(...
-                          iTrial-NUM_LAST_TRIALS+1:iTrial).Rewarded] == 1);
-        performance = rewardedTrialsCount/NUM_LAST_TRIALS;
-        GUI.AllPerformance = [GUI.AllPerformance,' - ',...
-                              num2str(performance*100,'%.2f'),'%/',num2str(NUM_LAST_TRIALS), 'T'];
-    end
-end
-CurTimer.customCalcBias = toc; tic;
+allTrialsIsLeftChoice = [BpodSystem.Data.Custom.Trials(1:iTrial).ChoiceLeft];
+AllPrimDV = [BpodSystem.Data.Custom.Trials(1:iTrial).DV];
+AllSecDV = [BpodSystem.Data.Custom.Trials(1:iTrial).SecDV];
+tic;
+[GUI.Performance, GUI.AllPerformance, GUI.PrimExpPerformance,...
+ GUI.PrimExpAllPerformance, GUI.SecExpPerformance, GUI.SecExpAllPerformance] =...
+     GenPerfStr(allTrialsChoices, AllPrimDV , AllSecDV, allTrialsIsLeftChoice);
+CurTimer.customPerfStrGen = toc; tic;
 
 [NextTrialBlockNum, NewLeftBias, NewExpType, NewSecExpType, ...
  BpodSystem.Data.Custom.BlocksInfo, GUI.Block] = CalcBlockInfo(GUI, iTrial,...
