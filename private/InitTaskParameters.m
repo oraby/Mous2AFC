@@ -1,6 +1,6 @@
 function [TaskParameters, Quit] = InitTaskParameters(TaskParameters,...
                                                   SubjectName_, SettingsFileName)
-GUICurVer = 46;
+GUICurVer = 47;
 Quit = false;
 DefaultTaskParameter = CreateTaskParameters(GUICurVer);
 if isempty(fieldnames(TaskParameters))
@@ -68,7 +68,7 @@ elseif ~strcmp(TaskParameters.GUI.ComputerName, computerName)
     end
 end
 % Re-assign callbacks in case they got lost (maybe between Matlab
-% versions?)
+% versions?). Also call the callbacks to update any GUI elements.
 meta_fields_names = fieldnames(TaskParameters.GUIMeta);
 for n=1:length(meta_fields_names)
     field_name = meta_fields_names{n};
@@ -83,5 +83,14 @@ TaskParameters.GUI.ComputerName = computerName;
 % A bad hack to only initialize first task parameter
 if ~isfield(TaskParameters, 'IgnoreInit')
     BpodParameterGUI('init', TaskParameters);
+end
+% Call the callbacks
+for n=1:length(meta_fields_names)
+    field_name = meta_fields_names{n};
+    if isfield(TaskParameters.GUIMeta.(field_name),'Callback')
+        % Get the handle and call the call callback on it
+        handle = GetGUIParamHandler(sprintf('TaskParameters.GUI.%s',field_name));
+        TaskParameters.GUIMeta.(field_name).Callback(handle );
+    end
 end
 end

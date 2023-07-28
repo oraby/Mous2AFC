@@ -56,10 +56,6 @@ RightValve = 2^(RightPort-1);
 AirSolenoidOn = 2^(AirSolenoid-1);
 AirSolenoidOff = 0;
 
-LeftValveTime  = GetValveTimes(CurTrial.RewardMagnitude(1), LeftPort);
-CenterValveTime  = GetValveTimes(CurTrial.CenterPortRewAmount, CenterPort);
-RightValveTime  = GetValveTimes(CurTrial.RewardMagnitude(2), RightPort);
-
 RewardIn = iff(IsLeftRewarded, LeftPortIn, RightPortIn);
 RewardOut = iff(IsLeftRewarded, LeftPortOut, RightPortOut);
 PunishIn = iff(IsLeftRewarded, RightPortIn, LeftPortIn);
@@ -67,12 +63,22 @@ PunishOut = iff(IsLeftRewarded, RightPortOut, LeftPortOut);
 IncorrectConsequence = iff(~TaskParameters.GUI.HabituateIgnoreIncorrect,...
                            str(MatrixState.WaitForPunishStart),...
                            str(MatrixState.RegisterWrongWaitCorrect));
-ValveTime = iff(IsLeftRewarded, LeftValveTime, RightValveTime);
-ValveCode = iff(IsLeftRewarded, LeftValve, RightValve);
+if IsLeftRewarded
+    RewardPort = LeftPort;
+    RewardValveCode = LeftValve;
+    PunishPort = RightPort;
+    PunishValveCode = RightValve;
+else
+    RewardPort = RightPort;
+    RewardValveCode = RightValve;
+    PunishPort = LeftPort;
+    PunishValveCode = LeftValve;
+end
+CenterValveTime  = GetValveTimes(CurTrial.CenterPortRewAmount, CenterPort);
 % CatchTrial
 if ~CurTrial.CatchTrial
-    RewardIfNotCatch = {'ValveState', ValveCode};
-    RewardDur = ValveTime;
+    RewardIfNotCatch = {'ValveState', RewardValveCode};
+    RewardDur = GetValveTimes(TaskParameters.GUI.RewardAmount, RewardPort);
 else
     RewardIfNotCatch = {};
     RewardDur = MinDur; %Const.FEEDBACK_CATCH_MAX_SEC - TaskParameters.GUI.FeedbackDelay;
@@ -94,6 +100,10 @@ elseif TaskParameters.GUI.IncorrectChoiceSignalType == IncorrectChoiceSignalType
 elseif TaskParameters.GUI.IncorrectChoiceSignalType == IncorrectChoiceSignalType.PortLED
     PunishmentDuration = 0.1;
     IncorrectChoice_Signal = {strcat('PWM',num2str(LeftPort)),LeftPWM,strcat('PWM',num2str(CenterPort)),CenterPWM,strcat('PWM',num2str(RightPort)),RightPWM};
+elseif TaskParameters.GUI.IncorrectChoiceSignalType == IncorrectChoiceSignalType.SmallReward
+    PunishmentDuration = GetValveTimes(TaskParameters.GUI.PunishRewardAmount,...
+                                       PunishPort);
+    IncorrectChoice_Signal = {'ValveState', PunishValveCode};
 else
     assert(false, 'Unexpected IncorrectChoiceSignalType value');
 end
@@ -167,9 +177,8 @@ Wire1OutCorrect = iff(TaskParameters.GUI.Wire1VideoTrigger && CurTrial.CatchTria
 % the training. On auditory discrimination task, both lateral ports are
 % illuminated after end of stimulus delivery.
 if CurTrial.ForcedLEDTrial
-    RewardedPort = iff(IsLeftRewarded, LeftPort, RightPort);
     RewardedPortPWM = iff(IsLeftRewarded, LeftPWM, RightPWM);
-    ForcedLEDStim = {strcat('PWM',num2str(RewardedPort)),RewardedPortPWM};
+    ForcedLEDStim = {strcat('PWM',num2str(RewardPort)),RewardedPortPWM};
 elseif TaskParameters.GUI.ExperimentType == ExperimentType.Auditory
     ForcedLEDStim = {strcat('PWM',num2str(LeftPort)),LeftPWM,strcat('PWM',num2str(RightPort)),RightPWM};
 else
@@ -353,10 +362,12 @@ sma = AddState(sma, 'Name',str(MatrixState.PunishGrace),...
                               CenterPortIn,str(MatrixState.timeOut_SkippedFeedback),...
                               RewardIn,str(MatrixState.timeOut_SkippedFeedback)},...
     'OutputActions', WaitFeedbackStim);
+% Remove AirFlowRewardOn from OutputActions from this state for now as it
+% conflicts with valve opening for rewarded-punishment option.
 sma = AddState(sma, 'Name', str(MatrixState.Punishment),...
     'Timer',PunishmentDuration,...
     'StateChangeConditions',{'Tup',str(MatrixState.WaitPunishOut),PunishOut,str(MatrixState.TriggerTimeoutIncorrectChoice)},...
-    'OutputActions',[IncorrectChoice_Signal WaitFeedbackStim AirFlowRewardOn]);
+    'OutputActions',[IncorrectChoice_Signal WaitFeedbackStim]);
 % Here in OutputAction, if it is CatchError, then trigger IncorrectTimeout when
 % the animal exits the port.
 % TODO: Add a general option to trigger timeout only when animal exits the port.

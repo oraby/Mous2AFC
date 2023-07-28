@@ -20,6 +20,8 @@ TaskParameters.GUIPanels.Experiment = {'ExperimentType','SecExperimentType',...
 %% General
 TaskParameters.GUI.ITI = 0; % (s)
 TaskParameters.GUI.RewardAmount = 5;
+TaskParameters.GUI.CenterPortRewAmount = 0.5;
+TaskParameters.GUI.PunishRewardAmount = 0;
 TaskParameters.GUI.ChoiceDeadLine = 20;
 TaskParameters.GUI.TimeOutIncorrectChoice = 0; % (s)
 TaskParameters.GUI.TimeOutBrokeFixation = 0; % (s)
@@ -38,8 +40,10 @@ TaskParameters.GUI.Percent50Fifty = 0;
 TaskParameters.GUI.Ports_LMRAudLRAir = 123568;
 TaskParameters.GUI.Wire1VideoTrigger = false;
 TaskParameters.GUIMeta.Wire1VideoTrigger.Style = 'checkbox';
-TaskParameters.GUIPanels.General = {'ITI','RewardAmount','ChoiceDeadLine','TimeOutIncorrectChoice',...
-    'TimeOutBrokeFixation','TimeOutEarlyWithdrawal','TimeOutMissedChoice','TimeOutSkippedFeedback',...
+TaskParameters.GUIPanels.General = {'ITI',...
+    'RewardAmount','CenterPortRewAmount','PunishRewardAmount',...
+    'ChoiceDeadLine','TimeOutIncorrectChoice','TimeOutBrokeFixation',...
+    'TimeOutEarlyWithdrawal','TimeOutMissedChoice','TimeOutSkippedFeedback',...
     'HabituateIgnoreIncorrect','PlayNoiseforError','PCTimeout','WaitFinalPokeOutSec','StartEasyTrials',...
     'Percent50Fifty','Ports_LMRAudLRAir','Wire1VideoTrigger'};
 %% StimDelay
@@ -68,6 +72,7 @@ TaskParameters.GUI.FeedbackDelayGrace = 0.4;
 TaskParameters.GUI.IncorrectChoiceSignalType = IncorrectChoiceSignalType.BeepOnWire_1;
 TaskParameters.GUIMeta.IncorrectChoiceSignalType.Style = 'popupmenu';
 TaskParameters.GUIMeta.IncorrectChoiceSignalType.String = IncorrectChoiceSignalType.String;
+TaskParameters.GUIMeta.IncorrectChoiceSignalType.Callback = @UpdateIncorrectSignalTypeCb;
 TaskParameters.GUI.ITISignalType = ITISignalType.None;
 TaskParameters.GUIMeta.ITISignalType.Style = 'popupmenu';
 TaskParameters.GUIMeta.ITISignalType.String = ITISignalType.String;
@@ -123,7 +128,6 @@ TaskParameters.GUIMeta.OmegaTable.Callback = @UpdateOmegaTableCb;
 TaskParameters.GUI.StimulusTime = 0.3;
 TaskParameters.GUI.RewardAfterMinSampling = false;
 TaskParameters.GUIMeta.RewardAfterMinSampling.Style = 'checkbox';
-TaskParameters.GUI.CenterPortRewAmount = 0.5;
 TaskParameters.GUI.MinSampleMin = 0;
 TaskParameters.GUI.MinSampleMax = 0;
 TaskParameters.GUI.MinSampleType = MinSampleType.AutoIncr;
@@ -164,7 +168,7 @@ TaskParameters.GUIPanels.LightIntensity = {'LeftPokeAttenPrcnt','CenterPokeAtten
 TaskParameters.GUIPanels.SoundIntensity = {'UsePCSpeakers','AudStimType','LeftSpeakerAttenPrcnt','RightSpeakerAttenPrcnt'};
 TaskParameters.GUIPanels.StimulusSelection = {'OmegaTable','BetaDistAlphaNBeta',...
     'StimulusSelectionCriteria','LeftBias','LeftBiasVal','CorrectBias'};
-TaskParameters.GUIPanels.Sampling = {'RewardAfterMinSampling','CenterPortRewAmount','MinSampleMin',...
+TaskParameters.GUIPanels.Sampling = {'RewardAfterMinSampling','MinSampleMin',...
                                      'MinSampleMax','MinSampleType','MinSampleIncr','MinSampleDecr','MinSampleNumInterval','MinSampleRandProb',...
                                      'StimulusTime','PortLEDtoCueReward','PercentForcedLEDTrial','SecExpAloneMinSample'};
 %% Summary Tab
