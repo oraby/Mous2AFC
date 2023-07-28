@@ -25,6 +25,8 @@ CurTrial.Feedback = true;
 % How long the animal spent waiting for the reward (whether in correct or
 % in incorrect ports)
 CurTrial.FeedbackTime = NaN;
+% How long the animal spent in te secondary feedback period
+CurTrial.FeedbackTimeEncore = NaN;
 % Signals whether the animal broke fixation during stimulus delay state
 CurTrial.FixBroke = false;
 % Signals whether the animal broke fixation during sampling but before
@@ -85,6 +87,10 @@ if any(strcmp(str(MatrixState.WaitForPunishStart),statesThisTrial)) || any(strcm
     end
     if any(strcmp(str(MatrixState.WaitForPunish),statesThisTrial))  % Feedback waiting time
         CurTrial.FeedbackTime = eventsStatesThisTrial.WaitForPunish(end,end) - eventsStatesThisTrial.WaitForPunishStart(1,1);
+        if any(strcmp(str(MatrixState.WaitForPunishEncore),statesThisTrial))
+            CurTrial.FeedbackTimeEncore = eventsStatesThisTrial.WaitForPunishEncore(end,end) - eventsStatesThisTrial.WaitForPunishEncore(1,1);
+            CurTrial.FeedbackTime = CurTrial.FeedbackTime + CurTrial.FeedbackTimeEncore;
+        end
     else % It was a  RegisterWrongWaitCorrect state
         CurTrial.FeedbackTime = nan;
     end
@@ -92,6 +98,10 @@ elseif any(strcmp(str(MatrixState.WaitForRewardStart),statesThisTrial))  % Corre
     CurTrial.ChoiceCorrect = 1;
     if any(strcmp(str(MatrixState.WaitForReward),statesThisTrial))  % Feedback waiting time
         CurTrial.FeedbackTime = eventsStatesThisTrial.WaitForReward(end,end) - eventsStatesThisTrial.WaitForRewardStart(1,1);
+        if any(strcmp(str(MatrixState.WaitForRewardEncore),statesThisTrial))
+            CurTrial.FeedbackTimeEncore = eventsStatesThisTrial.WaitForRewardEncore(end,end) - eventsStatesThisTrial.WaitForRewardEncore(1,1);
+            CurTrial.FeedbackTime = CurTrial.FeedbackTime + CurTrial.FeedbackTimeEncore;
+        end
         if CurTrial.LeftRewarded == 1 % Correct choice = left
             CurTrial.ChoiceLeft = 1; % Left chosen
         else
@@ -118,9 +128,12 @@ if any(strcmp(str(MatrixState.Reward),statesThisTrial)) && ~CurTrial.CatchTrial
     CurTrial.Rewarded = true;
     CurTrial.RewardReceivedTotal = CurTrial.RewardReceivedTotal + GUI.RewardAmount;
 end
-if any(strcmp(str(MatrixState.CenterPortRewardDelivery),statesThisTrial)) && GUI.RewardAfterMinSampling
+if GUI.RewardAfterMinSampling && any(strcmp(str(MatrixState.CenterPortRewardDelivery),statesThisTrial))
     CurTrial.RewardAfterMinSampling = true;
     CurTrial.RewardReceivedTotal = CurTrial.RewardReceivedTotal + GUI.CenterPortRewAmount;
+end
+if GUI.IncorrectChoiceSignalType == IncorrectChoiceSignalType.SmallReward && any(strcmp(str(MatrixState.Punishment),statesThisTrial))
+    CurTrial.RewardReceivedTotal = CurTrial.RewardReceivedTotal + GUI.PunishRewardAmount;
 end
 if any(strcmp(str(MatrixState.WaitCenterPortOut),statesThisTrial))
     CurTrial.ReactionTime = diff(eventsStatesThisTrial.WaitCenterPortOut);

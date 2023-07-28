@@ -146,7 +146,7 @@ while true
         BpodSystem.Data.TrialSettings(iTrial) = TaskParameters.GUI;
         BpodSystem.Data.Timer(iTrial).AppendData = toc; tic;
     end
-    CheckHomeCageStop(BpodSystem);
+    CheckHomeCageStop(BpodSystem, iTrial);
     if BpodBeingUsed(BpodSystem) == 0
         try
             % We can also specify: BpodSystem.Data.Custom.soundParams.pahandle

@@ -5,7 +5,6 @@ NextTrial.TrialNumber = NextTrialIdx;
 % TODO: Check if RewardReceivedTotal is needed and calculate it using
 % CalcRewObtained() function.
 NextTrial.RewardReceivedTotal = 0; % We will updated later
-NextTrial.RewardMagnitude = GUI.RewardAmount*[1,1];
 NextTrial.CenterPortRewAmount = GUI.CenterPortRewAmount;
 NextTrial.PreStimCntrReward = GUI.PreStimuDelayCntrReward;
 % Block number assignment requires No computation, but centralizes all

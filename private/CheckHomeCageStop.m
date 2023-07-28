@@ -1,11 +1,15 @@
-function CheckHomeCageStop(BpodSystem)
+function CheckHomeCageStop(BpodSystem, iTrial)
 if BpodSystem.Data.Custom.IsHomeCage
   if BpodBeingUsed(BpodSystem)
     RunDur = seconds(posixtime(datetime('now'))) - ...
                             seconds(BpodSystem.ProtocolSettings.StartTime);
     MaxDur = seconds(BpodSystem.ProtocolSettings.HomeCage.MaxDuration);
     DiffTime = RunDur - MaxDur;
-    RewardSoFar = CalcRewObtained(BpodSystem.Data.Custom);
+    if iTrial == 1
+      RewardSoFar = 0;
+    else
+      RewardSoFar = CalcRewObtained(BpodSystem.Data.Custom, iTrial-1);
+    end
     MaxRew = BpodSystem.ProtocolSettings.HomeCage.MaxRewardAmount;
     ShouldStop = 0;
     if DiffTime > 0
