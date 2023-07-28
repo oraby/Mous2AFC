@@ -1,0 +1,1 @@
+python -c "import sys; sys.path.append('$PWD'); from report import sessionreport; sessionreport.showAndSaveReport()" "C:\BpodUser\Data\YWD-4\Mouse2AFC\Session Data\YWD-4_Mouse2AFC_Jul04_2023_Session2.mat" "C:\BpodUser\Data\YWD-4\Mouse2AFC\Python Figures"
