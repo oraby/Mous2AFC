@@ -38,14 +38,12 @@ TaskParameters.GUI.WaitFinalPokeOutSec = 1;
 TaskParameters.GUI.StartEasyTrials = 10;
 TaskParameters.GUI.Percent50Fifty = 0;
 TaskParameters.GUI.Ports_LMRAudLRAir = 123568;
-TaskParameters.GUI.Wire1VideoTrigger = false;
-TaskParameters.GUIMeta.Wire1VideoTrigger.Style = 'checkbox';
 TaskParameters.GUIPanels.General = {'ITI',...
     'RewardAmount','CenterPortRewAmount','PunishRewardAmount',...
     'ChoiceDeadLine','TimeOutIncorrectChoice','TimeOutBrokeFixation',...
     'TimeOutEarlyWithdrawal','TimeOutMissedChoice','TimeOutSkippedFeedback',...
     'HabituateIgnoreIncorrect','PlayNoiseforError','PCTimeout','WaitFinalPokeOutSec','StartEasyTrials',...
-    'Percent50Fifty','Ports_LMRAudLRAir','Wire1VideoTrigger'};
+    'Percent50Fifty','Ports_LMRAudLRAir'};
 %% StimDelay
 TaskParameters.GUI.StimDelayAutoincrement = 0;
 TaskParameters.GUIMeta.StimDelayAutoincrement.Style = 'checkbox';
@@ -69,6 +67,7 @@ TaskParameters.GUI.FeedbackDelayIncr = 0.01;
 TaskParameters.GUI.FeedbackDelayDecr = 0.01;
 TaskParameters.GUI.FeedbackDelayTau = 0.1;
 TaskParameters.GUI.FeedbackDelayGrace = 0.4;
+TaskParameters.GUI.FeedbackDelayFixedEncore = 0;
 TaskParameters.GUI.IncorrectChoiceSignalType = IncorrectChoiceSignalType.BeepOnWire_1;
 TaskParameters.GUIMeta.IncorrectChoiceSignalType.Style = 'popupmenu';
 TaskParameters.GUIMeta.IncorrectChoiceSignalType.String = IncorrectChoiceSignalType.String;
@@ -78,7 +77,10 @@ TaskParameters.GUIMeta.ITISignalType.Style = 'popupmenu';
 TaskParameters.GUIMeta.ITISignalType.String = ITISignalType.String;
 TaskParameters.GUI.FeedbackDelay = TaskParameters.GUI.FeedbackDelayMin;
 TaskParameters.GUIMeta.FeedbackDelay.Style = 'text';
-TaskParameters.GUIPanels.FeedbackDelay = {'FeedbackDelaySelection','FeedbackDelayMin','FeedbackDelayMax','FeedbackDelayIncr','FeedbackDelayDecr','FeedbackDelayTau','FeedbackDelayGrace','IncorrectChoiceSignalType','ITISignalType'};
+TaskParameters.GUIPanels.FeedbackDelay = {'FeedbackDelaySelection',...
+    'FeedbackDelayMin','FeedbackDelayMax','FeedbackDelayIncr',...
+    'FeedbackDelayDecr','FeedbackDelayTau','FeedbackDelayGrace',...
+    'FeedbackDelayFixedEncore','IncorrectChoiceSignalType','ITISignalType'};
 %% Air control
 TaskParameters.GUI.CutAirStimDelay = true;
 TaskParameters.GUIMeta.CutAirStimDelay.Style = 'checkbox';
