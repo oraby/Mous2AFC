@@ -35,6 +35,7 @@ classdef MatrixState
         WaitPunishEnd = 33;
         StimulusTime = 34;
         TriggerTimeoutIncorrectChoice = 35;
+        timeOut_IncorrectChoicePong = 36;
     end
     properties (Constant, Access = private)
         asStr = MatrixState.String();
