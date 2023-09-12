@@ -35,8 +35,10 @@ classdef MatrixState
         WaitPunishEnd = 33;
         StimulusTime = 34;
         TriggerTimeoutIncorrectChoice = 35;
-        WaitForRewardEncore = 36;
-        WaitForPunishEncore = 37;
+        WaitForRewardEncoreCue = 36;
+        WaitForPunishEncoreCue = 37;
+        WaitForRewardEncoreAfterCue = 38;
+        WaitForPunishEncoreAfterCue = 39;
     end
     properties (Constant, Access = private)
         asStr = MatrixState.String();

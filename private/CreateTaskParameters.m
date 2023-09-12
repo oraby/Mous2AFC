@@ -68,6 +68,7 @@ TaskParameters.GUI.FeedbackDelayDecr = 0.01;
 TaskParameters.GUI.FeedbackDelayTau = 0.1;
 TaskParameters.GUI.FeedbackDelayGrace = 0.4;
 TaskParameters.GUI.FeedbackDelayFixedEncore = 0;
+TaskParameters.GUI.FixedEncoreCueSubDur = 0;
 TaskParameters.GUI.IncorrectChoiceSignalType = IncorrectChoiceSignalType.BeepOnWire_1;
 TaskParameters.GUIMeta.IncorrectChoiceSignalType.Style = 'popupmenu';
 TaskParameters.GUIMeta.IncorrectChoiceSignalType.String = IncorrectChoiceSignalType.String;
@@ -80,7 +81,8 @@ TaskParameters.GUIMeta.FeedbackDelay.Style = 'text';
 TaskParameters.GUIPanels.FeedbackDelay = {'FeedbackDelaySelection',...
     'FeedbackDelayMin','FeedbackDelayMax','FeedbackDelayIncr',...
     'FeedbackDelayDecr','FeedbackDelayTau','FeedbackDelayGrace',...
-    'FeedbackDelayFixedEncore','IncorrectChoiceSignalType','ITISignalType'};
+    'FeedbackDelayFixedEncore', 'FixedEncoreCueSubDur',...
+    'IncorrectChoiceSignalType','ITISignalType'};
 %% Air control
 TaskParameters.GUI.CutAirStimDelay = true;
 TaskParameters.GUIMeta.CutAirStimDelay.Style = 'checkbox';

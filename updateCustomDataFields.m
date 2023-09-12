@@ -87,8 +87,13 @@ if any(strcmp(str(MatrixState.WaitForPunishStart),statesThisTrial)) || any(strcm
     end
     if any(strcmp(str(MatrixState.WaitForPunish),statesThisTrial))  % Feedback waiting time
         CurTrial.FeedbackTime = eventsStatesThisTrial.WaitForPunish(end,end) - eventsStatesThisTrial.WaitForPunishStart(1,1);
-        if any(strcmp(str(MatrixState.WaitForPunishEncore),statesThisTrial))
-            CurTrial.FeedbackTimeEncore = eventsStatesThisTrial.WaitForPunishEncore(end,end) - eventsStatesThisTrial.WaitForPunishEncore(1,1);
+        if any(strcmp(str(MatrixState.WaitForPunishEncoreCue),statesThisTrial))
+            if any(strcmp(str(MatrixState.WaitForPunishEncoreAfterCue),statesThisTrial))
+                EncoreEnd = eventsStatesThisTrial.WaitForPunishEncoreAfterCue(end,end);
+            else
+                EncoreEnd = eventsStatesThisTrial.WaitForPunishEncoreCue(end,end);
+            end
+            CurTrial.FeedbackTimeEncore = EncoreEnd - eventsStatesThisTrial.WaitForPunishEncoreCue(1,1);
             CurTrial.FeedbackTime = CurTrial.FeedbackTime + CurTrial.FeedbackTimeEncore;
         end
     else % It was a  RegisterWrongWaitCorrect state
@@ -98,8 +103,13 @@ elseif any(strcmp(str(MatrixState.WaitForRewardStart),statesThisTrial))  % Corre
     CurTrial.ChoiceCorrect = 1;
     if any(strcmp(str(MatrixState.WaitForReward),statesThisTrial))  % Feedback waiting time
         CurTrial.FeedbackTime = eventsStatesThisTrial.WaitForReward(end,end) - eventsStatesThisTrial.WaitForRewardStart(1,1);
-        if any(strcmp(str(MatrixState.WaitForRewardEncore),statesThisTrial))
-            CurTrial.FeedbackTimeEncore = eventsStatesThisTrial.WaitForRewardEncore(end,end) - eventsStatesThisTrial.WaitForRewardEncore(1,1);
+        if any(strcmp(str(MatrixState.WaitForRewardEncoreCue),statesThisTrial))
+            if any(strcmp(str(MatrixState.WaitForRewardEncoreAfterCue),statesThisTrial))
+                EncoreEnd = eventsStatesThisTrial.WaitForRewardEncoreAfterCue(end,end);
+            else
+                EncoreEnd = eventsStatesThisTrial.WaitForRewardEncoreCue(end,end);
+            end
+            CurTrial.FeedbackTimeEncore = EncoreEnd  - eventsStatesThisTrial.WaitForRewardEncoreCue(1,1);
             CurTrial.FeedbackTime = CurTrial.FeedbackTime + CurTrial.FeedbackTimeEncore;
         end
         if CurTrial.LeftRewarded == 1 % Correct choice = left
