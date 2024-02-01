@@ -55,13 +55,13 @@ BpodSystem.Data.Custom.BlocksInfo.NextSwitchAt = 0; % Force block calculation
 % Setting StartTime to any value, it will be overwritten by the first poke
 % in if we are in homecage
 BpodSystem.ProtocolSettings.StartTime = posixtime(datetime('now'));
-
 file_size = 120*1024*1024; % 120 MB mem-mapped file
 mapped_file = createMMFile(tempdir, 'mmap_matlab_plot.dat', file_size);
 % Setup the memory mapped file anyway for visual stimulus, even if it's not the
 % primary stimulus, the user might set it up as the secondary stimulus later
 BpodSystem.SystemSettings.dotsMapped_file =...
-            createMMFile('c:\Bpoduser\', 'mmap_matlab_randomdot.dat', file_size);
+                    createMMFile(BpodSystem.Path.LocalDir,...
+                                 'mmap_matlab_randomdot.dat', file_size);
 % Should we always force initilization of screen to zero as we have here?
 BpodSystem.SystemSettings.dotsMapped_file.Data(1:4) = typecast(uint32(0),...
                                                                'uint8');
