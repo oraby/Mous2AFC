@@ -366,10 +366,16 @@ if iTrial+1 >= BpodSystem.Data.Custom.DVsAlreadyGenerated || ...
     CurTimer.customCalcOmega = toc; tic;
 
     %CurTimer.customPrepNewTrials = toc; tic;
+    if ~all(isnan([NextTrialBlockNum, CurTrial.BlockNum]))
+        NumTrialsToGenerate = ...
+                         BpodSystem.Data.Custom.BlocksInfo.NextSwitchAt - iTrial
+    else
+        NumTrialsToGenerate = Const.PRE_GENERATE_TRIAL_COUNT;
+    end
     [BpodSystem.Data.Custom.Trials,...
      BpodSystem.Data.Custom.DVsAlreadyGenerated] = AssignFutureTrials(...
         BpodSystem.Data.Custom.Trials, GUI, iTrial+1,...
-        Const.PRE_GENERATE_TRIAL_COUNT, LeftBias);
+        NumTrialsToGenerate, LeftBias);
     CurTimer.customGenNewTrials = toc;
 else
     CurTimer.customAdjustBias = 0;
