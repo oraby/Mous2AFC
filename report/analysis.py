@@ -403,7 +403,7 @@ def performanceOverTime(df, head_fixation_date=None, single_session=None,
     axes.axvline(x=head_fixation_session,color='gray',linestyle='-',alpha=1,
                  zorder=-1)
     lines.append(Line2D([], [], marker='|',linestyle='None',color='gray',
-                 alpha=0.8, markersize=10*SCALE_X))
+                 alpha=0.8, ms=10*SCALE_X))
     labels.append("$1^{st}$ head-fixed session")
 
   if not axes_legend:
@@ -420,7 +420,7 @@ def performanceOverTime(df, head_fixation_date=None, single_session=None,
         if i not in num_difficulties:
           continue
         lines3.append(Line2D([], [], color=colorMapIdx(i),
-                      marker='o', linestyle='None', markersize=7.5*SCALE_X,
+                      marker='o', linestyle='None', ms=7.5*SCALE_X,
                       markeredgecolor='k'))
         labels3.append('{} difficult{}'.format(i, 'y' if i == 1 else 'ies'))
 
@@ -913,7 +913,7 @@ def _psych(df, PsycStim_axes, color, linewidth, legend_name, *, periods=5,
            alpha=1, combine_sides=False, plot_points=True, offset=False,
            SEM=False, min_slope=None, crit=PsychFitCrit.MaxLikelihood,
            max_likli_crit=MaxLikelihoodModel.Weibull,
-           linestyle="solid", marker='o', markersize=1.5,
+           linestyle="solid", marker='o', ms=1.5,
            annotate_pts=False, fitkargs={}):
     '''Do the actual plotting'''
     #ndxNan = isnan(DataCustom.ChoiceLeft);
@@ -934,7 +934,7 @@ def _psych(df, PsycStim_axes, color, linewidth, legend_name, *, periods=5,
                                                           #EXTRA_BIN*(1/DVNBin))
       PsycStim_axes.plot(PsycX, PsycY, linestyle='none', marker=marker,
                          markeredgecolor=color, markerfacecolor=color,
-                         markerSize=markersize*linewidth*SCALE_X, alpha=alpha)
+                         ms=ms*linewidth*SCALE_X, alpha=alpha)
       if annotate_pts:
         DVCount = [len(dv_df) for _, _, dv_df in df_by_dv]
         for x, y, count in zip(PsycX, PsycY, DVCount):
@@ -1321,7 +1321,7 @@ def vevaiometric(df, filterGroupFn, vevaiometric_axes, max_feedbacktime):
     all_group_points=pd.concat(group_list)
     if not DRAW_MEANS:
       vevaiometric_axes.plot(all_group_points.DV, all_group_points.FeedbackTime,
-        linestyle='None', marker='o', markersize=2*SCALE_X, color=color,
+        linestyle='None', marker='o', ms=2*SCALE_X, color=color,
         markerfacecolor=color, markeredgecolor=color)
       max_fb=max(max_fb,all_group_points.FeedbackTime.max() + 1)
       min_fb=min(min_fb,max(0,min_fb,all_group_points.FeedbackTime.min() - 1))
@@ -1364,7 +1364,7 @@ def vevaiometric(df, filterGroupFn, vevaiometric_axes, max_feedbacktime):
       vevaiometric_axes.plot(x_data,y_upper,color=color,alpha=0.8)
       if DRAW_MEANS:
         vevaiometric_axes.plot(x_data,y_means,linestyle='None',
-                               marker='o',markersize=8*SCALE_X,color=color,
+                               marker='o',ms=8*SCALE_X,color=color,
                                markerfacecolor=color,markeredgecolor=color)
         max_fb=max(max_fb,max(y_means) + 1)
         min_fb=min(min_fb,max(0,min(y_means) - 1))
@@ -1871,7 +1871,7 @@ def accuracyWT(df, filterGroupFn, axes, how=AccWTMethod.Hist, normalized=False,
   # print("Y-data sem:", y_data_sem)
   axes.errorbar(x_points, y_data, yerr=y_data_sem, linewidth=0.5*SCALE_X,
                 color='k',marker='.',markerfacecolor='b',
-                markersize=10*SCALE_X,fmt='-o')
+                ms=10*SCALE_X,fmt='-o')
   axes.tick_params(axis='y', labelcolor='b')
   axes.set_ylabel('Accuracy', color='b')
   axes.set_ylim(0.5, 1)
