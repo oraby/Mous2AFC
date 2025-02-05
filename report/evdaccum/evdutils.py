@@ -384,7 +384,7 @@ def timeHist(*, ax, df, col_name, friendly_col_name, overstay_col, max_x_lim,
     colors += ['k']
     labels += ["Länger Bleiben"]
   # [0] = histogram, ignore bins edges returned value
-  counts = [np.histogram(data_grp,bins=bins)[0].astype(np.float)
+  counts = [np.histogram(data_grp,bins=bins)[0].astype(float)
           for data_grp in data]
   if normalized:
     counts = [counts_per_bin/counts_per_bin.max() for counts_per_bin in counts]
