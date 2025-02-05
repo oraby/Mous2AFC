@@ -1166,7 +1166,7 @@ def plotNormTrialDistrib(df, axes, METHOD, periods=5):
     difficulties = df[df.ChoiceLeft.isnull() & df.ForcedLEDTrial == 0].DV
     bins = rngDV(periods=periods)
     counts, _ = np.histogram(difficulties,bins=bins)
-    counts = counts.astype(np.float)
+    counts = counts.astype(float)
     twax = axes.twinx()
     twax.set_ylabel("Anzahl von Versuchen")
     twax.bar(bins[:-1], counts, width=np.diff(bins), align='edge', zorder=-1,
@@ -1224,8 +1224,8 @@ def plotMT(df, color, axes, normalize):
       min_rt = min(min_rt, group.calcReactionTime.median())
       max_rt = max(max_rt, group.calcReactionTime.median())
       #print("Group:", group.MT.mean(), "Group_name:", group_name)
-    Xs=np.array(Xs,dtype=np.float)
-    Ys=np.array(Ys,dtype=np.float)
+    Xs=np.array(Xs,dtype=float)
+    Ys=np.array(Ys,dtype=float)
     if normalize:
       print("Ys:",Ys)
       Ys/=Ys.max()
@@ -1458,7 +1458,7 @@ def vevaiometricByDiffifculty(difficulty_df, vevaiometric_axes):
     USE_MEAN=True
     for trials_type, name, marker, line_color in [(err_trials,"Error",'s','r'),
                                                   (catch_trials,"Catch",'*','g')]:
-      difficulties_WT = [] #np.array([], dtype=np.float)
+      difficulties_WT = [] #np.array([], dtype=float)
       difficulties_DV = []
       for difficulty_level, difficulty_trials in trials_type.groupby(trials_type.DifficultyLevel):
         mean_WT = difficulty_trials.FeedbackTime.mean()
@@ -1722,7 +1722,7 @@ def catchWTDistrib(df, filterGroupFn, axes, cumsum=True, label_prefix=""):
         num_bins = int((data.FeedbackTime.max()-data.FeedbackTime.min())/BIN_STEP_SEC)
         counts, bins = np.histogram(data.FeedbackTime,bins=num_bins)
         bins = bins[:-1]
-      counts = counts.astype(np.float)
+      counts = counts.astype(float)
       counts /= counts.max()
 
     axes.plot(bins,counts,zorder=-1,color=color,label=label if cumsum else None,
@@ -1784,7 +1784,7 @@ def accuracyWT(df, filterGroupFn, axes, how=AccWTMethod.Hist, normalized=False,
                          ceil(catch_trials.FeedbackTime.max()) + 1, BIN_SIZE_SEC)
   print("Used bins:", bins_range)
   count_per_bin, hist_bins = np.histogram(catch_trials.FeedbackTime, bins=bins_range)
-  count_per_bin = count_per_bin.astype(np.float)
+  count_per_bin = count_per_bin.astype(float)
   assert (hist_bins == bins_range).all(), "Hist bins should match bins_range"
 
   if how == AccWTMethod.Every100:
